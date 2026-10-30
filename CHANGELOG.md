@@ -1,3 +1,10 @@
+## [1.0.0-dev.7](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* declare WebView matcher instruction index ([14fb1f2](https://github.com/sarvottam99/Miraie-Patches/commit/14fb1f2e67367081e31fea1263776b50e04d6d79))
+* enable WebView darkening and complete remaining screens ([a50438b](https://github.com/sarvottam99/Miraie-Patches/commit/a50438bdf8806fe3fb7370032ec8aa9a549444ba))
+
 ## [1.0.0-dev.6](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-10-30)
 
 ### 🐛 Bug Fixes
