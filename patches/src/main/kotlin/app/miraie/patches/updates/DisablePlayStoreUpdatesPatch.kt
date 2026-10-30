@@ -74,7 +74,7 @@ internal val disablePlayStoreUpdatesPatch = bytecodePatch(
     description = "Disables Play Store updates by setting the version code to the maximum allowed. " +
             "This patch may cause unexpected issues with some apps and does not work if the " +
             "app is installed by root mounting",
-    default = false
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_MIRAIE)
 

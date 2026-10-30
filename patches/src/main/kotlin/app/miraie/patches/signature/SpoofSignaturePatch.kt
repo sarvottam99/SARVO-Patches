@@ -15,7 +15,7 @@ import app.miraie.patches.shared.Constants.COMPATIBILITY_MIRAIE
 val spoofSignaturePatch = resourcePatch (
     name = "Spoof signature",
     description = "Spoofs the package signature of the original APK.",
-    default = false
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_MIRAIE)
     dependsOn(baseSpoofSignaturePatch)

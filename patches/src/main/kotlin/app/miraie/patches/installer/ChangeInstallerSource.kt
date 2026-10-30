@@ -16,7 +16,7 @@ import app.miraie.patches.shared.Constants.COMPATIBILITY_MIRAIE
 val changeInstallerSource = resourcePatch(
     name = "Change installer source",
     description = "Spoofs the installer source so the app appears to be installed from an app store.",
-    default = false
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_MIRAIE)
     val packageInstallerName = stringOption(
