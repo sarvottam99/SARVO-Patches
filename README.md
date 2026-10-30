@@ -1,18 +1,18 @@
-# 👋🧩 Morphe Patches template
+# 👋🧩 Miraie Patches
 
 Template repository for Morphe Patches.
 
 ## ❓ About
 
-Patches for apps I like.
+Panasonic MirAIe patches for Morphe Manager.
 
 <!-- TODO: Update this about section with a brief introduction/summary about this repo and what it offers. -->
 
 ### How to use these patches
 
-Click the button below, or manually add this repo url to Morphe Manager: https://github.com/xyz-user/xyz-patches
+Click the button below, or manually add this repo url to Morphe Manager: https://github.com/sarvottam99/Miraie-Patches
 
-<a href="https://morphe.software/add-source?github=xyz-user/xyz-patches">
+<a href="https://morphe.software/add-source?github=sarvottam99/Miraie-Patches">
   <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
 </a>
 
@@ -100,4 +100,15 @@ See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation
 
 ## 📜 License
 
-UserXYZ Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+Miraie Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+
+## MirAIe support
+
+This repository contains patches for Panasonic MirAIe Android app package
+`com.panasonic.in.miraie`, targeting version `1.4.32` (XAPK).
+The bundle is intended for use with Morphe Manager; it is an independent,
+community-maintained project and is not affiliated with the Morphe project
+or Panasonic.
+
+Included patches: Dark mode (follows Android system dark mode), Change
+installer source, Disable Play Store updates, and Spoof signature.

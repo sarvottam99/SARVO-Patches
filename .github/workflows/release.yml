@@ -13,6 +13,9 @@ jobs:
       id-token: write
       attestations: write
     runs-on: ubuntu-latest
+    env:
+      MORPHE_GPR_USER: ${{ secrets.MORPHE_GPR_USER }}
+      MORPHE_GPR_KEY: ${{ secrets.MORPHE_GPR_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
