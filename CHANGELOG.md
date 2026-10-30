@@ -1,3 +1,9 @@
+## [1.0.0-dev.9](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* read AppTheme through Morphe resource document API ([3a8eaf1](https://github.com/sarvottam99/Miraie-Patches/commit/3a8eaf14ad2860948dfeff5e7234ebde27ffd69e))
+
 ## [1.0.0-dev.8](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2026-10-30)
 
 ### 🐛 Bug Fixes
