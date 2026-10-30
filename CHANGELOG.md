@@ -1,3 +1,9 @@
+## [1.0.0-dev.2](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* improve MirAIe dark mode and recommended patch defaults ([6cb0788](https://github.com/sarvottam99/Miraie-Patches/commit/6cb07884a53752068f1a949c168699c2cfce7b4a))
+
 ## 1.0.0-dev.1 (2026-10-30)
 
 ### ✨ New Features

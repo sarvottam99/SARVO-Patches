@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-30T17:14:08",
-  "description": "## 1.0.0-dev.1 (2026-10-30)\n\n### ✨ New Features\n\n* add MirAIe patches and dark mode ([66ff2c5](https://github.com/sarvottam99/Miraie-Patches/commit/66ff2c5ecf1aa3f71083c442d11304104fa62069))\n\n### 🐛 Bug Fixes\n\n* move compatibility declarations into patch blocks ([bcc2c17](https://github.com/sarvottam99/Miraie-Patches/commit/bcc2c178fd2606fe1d51dcadf9c425b403ad65e9))\n* remove duplicate version catalog entries ([02d34b7](https://github.com/sarvottam99/Miraie-Patches/commit/02d34b7bdc76ef8466ba832d34dffde9cad2d6ac))",
-  "download_url": "https://github.com/sarvottam99/Miraie-Patches/releases/download/v1.0.0-dev.1/patches-1.0.0-dev.1.mpp",
+  "created_at": "2026-10-30T18:03:36",
+  "description": "## [1.0.0-dev.2](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-10-30)\n\n### 🐛 Bug Fixes\n\n* improve MirAIe dark mode and recommended patch defaults ([6cb0788](https://github.com/sarvottam99/Miraie-Patches/commit/6cb07884a53752068f1a949c168699c2cfce7b4a))",
+  "download_url": "https://github.com/sarvottam99/Miraie-Patches/releases/download/v1.0.0-dev.2/patches-1.0.0-dev.2.mpp",
   "signature_download_url": "",
-  "version": "1.0.0-dev.1"
+  "version": "1.0.0-dev.2"
 }
