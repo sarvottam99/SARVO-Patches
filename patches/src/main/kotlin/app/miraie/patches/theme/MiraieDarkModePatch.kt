@@ -2,6 +2,12 @@ package app.miraie.patches.theme
 
 import app.miraie.patches.shared.Constants.COMPATIBILITY_MIRAIE
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.util.getFreeRegisterProvider
+import app.morphe.patcher.util.matchAllMethodIndicesForEach
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -71,6 +77,7 @@ private fun miraieIsWhiteColor(value: String): Boolean {
         color.contains("light_grey") ||
         color.contains("light_gray") ||
         color.contains("background_location_") ||
+        color.contains("background_light") ||
         miraieIsLightHex(color)
 }
 
@@ -560,6 +567,161 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
             }
         }
 
+        // MIRAIE_FORCE_DARK_WEBVIEW_V7
+        // Account deletion was a FrameLayout hosting a fragment whose root had
+        // no background, leaving the default light window visible.
+        patchLayout(
+            "res/layout/fragment_delete_accout.xml",
+            "@color/screen_background_color",
+            forceNeutralText = true
+        )
+        patchLayout(
+            "res/layout/layout_delete_account_tc_popup.xml",
+            "@drawable/round_corner_dialog_bg",
+            forceNeutralText = true
+        )
+
+        // Contact Us already had a dark page canvas, but its black text and
+        // footer surface were hard-coded independently of the theme.
+        patchLayout(
+            "res/layout/activity_customer_care.xml",
+            "@color/screen_background_color",
+            forceNeutralText = true
+        )
+        patchLayout(
+            "res/layout/activity_customer_care_nepal.xml",
+            "@color/screen_background_color",
+            forceNeutralText = true
+        )
+        patchLayout(
+            "res/layout/activity_customer_care_srilanka.xml",
+            "@color/screen_background_color",
+            forceNeutralText = true
+        )
+        document("res/layout/activity_customer_care.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                if (miraieElementAttribute(element, "background") == "@color/button_1_text_color") {
+                    miraieSetAttribute(
+                        element, "background", "@color/card_view_color", ANDROID_NS, "android"
+                    )
+                }
+            }
+        }
+
+        // Rooms bottom sheet uses bottom_sheet_gradient and a separate pale
+        // disabled-row drawable; these are not ordinary @color/white surfaces.
+        patchLayout(
+            "res/layout/layout_rooms_bottom_sheet.xml",
+            "@drawable/bottom_sheet_gradient"
+        )
+        document("res/layout/layout_rooms_bottom_sheet.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                if (miraieElementAttribute(element, "id").substringAfterLast('/') == "rooms_bs_close") {
+                    miraieSetAttribute(
+                        element, "tint", "@color/primary_gray_text_color", ANDROID_NS, "android"
+                    )
+                }
+            }
+        }
+
+        // The plan-benefit strip is HTML rendered in a WebView, not an Android
+        // TextView row. Give the WebView a dark canvas; the bytecode hook below
+        // enables WebView's algorithmic darkening for the HTML itself.
+        document("res/layout/ecare_amc_plans_inner_items_layout.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                if (miraieElementAttribute(element, "id").substringAfterLast('/') == "key_description_web_view") {
+                    miraieSetAttribute(
+                        element, "background", "@color/screen_background_color", ANDROID_NS, "android"
+                    )
+                }
+            }
+        }
+
+        // Privacy Policy, Terms & Conditions and Third Party License all use
+        // fragment_license's pcc WebView. Avoid a white flash behind its page.
+        document("res/layout/fragment_license.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                if (miraieElementAttribute(element, "id").substringAfterLast('/') == "wvPage1") {
+                    miraieSetAttribute(
+                        element, "background", "@color/screen_background_color", ANDROID_NS, "android"
+                    )
+                }
+            }
+        }
+
+        // Strengthen the service-history canvas across the activity frame,
+        // swipe container and empty/error fragment. A failed server request
+        // should still leave a consistently dark page rather than a grey slab.
+        patchLayout(
+            "res/layout/activity_service_request_history.xml",
+            "@color/screen_background_color",
+            patchTabs = true
+        )
+        patchLayout(
+            "res/layout/fragment_pana_anchor_history.xml",
+            "@color/screen_background_color"
+        )
+        document("res/layout/fragment_pana_anchor_history.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                val tag = element.tagName
+                if (tag.contains("SwipeRefreshLayout") || tag.contains("RecyclerView")) {
+                    miraieSetAttribute(
+                        element, "background", "@color/screen_background_color", ANDROID_NS, "android"
+                    )
+                }
+            }
+        }
+
+        // Password fields use a custom EditText class inside Material
+        // TextInputLayouts. Set both the floating-hint appearance and the
+        // actual input/hint colors explicitly.
+        document("res/layout/fragment_change_password.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                val tag = element.tagName
+                if (tag.contains("TextInputLayout")) {
+                    miraieSetAttribute(
+                        element, "hintTextAppearance", "@style/TextViewRegular14spPrimaryGrey", APP_NS, "app"
+                    )
+                    miraieSetAttribute(element, "boxBackgroundMode", "1", APP_NS, "app")
+                    miraieSetAttribute(
+                        element, "boxBackgroundColor", "@color/card_view_color", APP_NS, "app"
+                    )
+                    miraieSetAttribute(
+                        element, "boxStrokeColor", "@color/primary_gray_text_color", APP_NS, "app"
+                    )
+                    miraieSetAttribute(
+                        element, "hintTextColor", "@color/edit_hint_text_color", APP_NS, "app"
+                    )
+                }
+                if (tag.contains("EditText")) {
+                    miraieSetAttribute(
+                        element, "textColor", "@color/primary_text_color", ANDROID_NS, "android"
+                    )
+                    miraieSetAttribute(
+                        element, "textColorHint", "@color/edit_hint_text_color", ANDROID_NS, "android"
+                    )
+                    miraieSetAttribute(
+                        element, "backgroundTint", "@color/primary_gray_text_color", ANDROID_NS, "android"
+                    )
+                }
+            }
+        }
+
+        // The Material Snackbar layout uses three separately tinted resources;
+        // update all three so its pale teal panel cannot survive in night mode.
+
         // BottomNavigationView uses a light Material overlay in the original XML.
         document("res/layout/activity_homescreen.xml").use { xml ->
             val elements = xml.getElementsByTagName("*")
@@ -601,6 +763,10 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
         writeNightShape("nw_tab_selected_drawable", radiusDp = 22, fill = "@color/light_grey")
         writeNightShape("design_snackbar_background", radiusDp = 4)
         writeNightShape("card_background_shape", radiusDp = 12)
+        writeNightShape("bottom_sheet_gradient", radiusDp = 22, fill = "@color/card_view_color", topCornersOnly = true)
+        writeNightShape("round_corner_disabled_colour_8dp", radiusDp = 8, fill = "@color/light_grey")
+        writeNightShape("round_corner_dialog_bg", radiusDp = 16)
+        writeNightShape("ecare_amc_dynamic_tag_bg", radiusDp = 8, fill = "@color/light_grey")
         writeNightShape("card_background_shape_alert", radiusDp = 12)
         writeNightShape("card_background_shape_room", radiusDp = 12)
         writeNightShape("bg_card_rect_primary_light", radiusDp = 12)
@@ -705,6 +871,9 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
     <color name="background_location_permission_popup_msg">#FF303030</color>
     <color name="design_snackbar_background_color">#FF303030</color>
     <color name="tws_snackbar_bg_color">#FF303030</color>
+    <color name="vdp_error_view_and_text_color">#FF303030</color>
+    <color name="vdp_error_snack_bar_text_color">#FF3A3A3A</color>
+    <color name="vdp_error_close_button_color">#FFF5F5F5</color>
 
     <color name="button_2_background">#FF333333</color>
     <color name="button_2_text_color">#FFF5F5F5</color>
@@ -715,6 +884,22 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
         )
     }
 }
+
+// MIRAIE_FORCE_DARK_WEBVIEW_V7
+// Target app-owned WebViews only. The Alexa sign-in WebView is intentionally
+// excluded so identity-provider pages retain their own appearance.
+private val MIRAIE_WEBVIEW_GET_SETTINGS = Fingerprint(
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            smali = "Landroid/webkit/WebView;->getSettings()Landroid/webkit/WebSettings;"
+        )
+    ),
+    custom = { _, classDef ->
+        classDef.type.startsWith("Lcom/panasonic/in/miraie/") &&
+            !classDef.type.contains("AlexaLoginWebViewActivity")
+    }
+)
 
 private val ENERGY_CHART_PREPARE_BAR_CHART = Fingerprint(
     definingClass = "Lcom/panasonic/in/miraie/widgets/EnergyConsumption;",
@@ -785,5 +970,46 @@ val miraieDarkModePatch = bytecodePatch(
                 invoke-virtual {v3, v1}, Lcom/github/mikephil/charting/components/XAxis;->setAvoidFirstLastClipping(Z)V
             """.trimIndent()
         )
+
+        MIRAIE_WEBVIEW_GET_SETTINGS.matchAllMethodIndicesForEach(requireMatches = false) {
+            // getSettings() must be followed by move-result-object; insert only
+            // after that result so the DEX verifier sees a valid instruction pair.
+            val resultInstruction = try {
+                getInstruction(index + 1)
+            } catch (_: IndexOutOfBoundsException) {
+                return@matchAllMethodIndicesForEach
+            }
+            if (resultInstruction.opcode != Opcode.MOVE_RESULT_OBJECT) {
+                return@matchAllMethodIndicesForEach
+            }
+            val webSettingsRegister = (resultInstruction as OneRegisterInstruction).registerA
+            // invoke-virtual's 35c format uses 4-bit registers. Skip unusual
+            // high-register methods rather than generating invalid bytecode.
+            if (webSettingsRegister >= 16) return@matchAllMethodIndicesForEach
+
+            // getFreeRegisterProvider takes (insertionIndex, numberNeeded, excluded...).
+            // Reserve two distinct 4-bit registers and exclude the live WebSettings ref.
+            val freeRegisters = try {
+                getFreeRegisterProvider(index + 2, 2, webSettingsRegister)
+            } catch (_: IllegalArgumentException) {
+                return@matchAllMethodIndicesForEach
+            }
+            if (freeRegisters.availableCount() < 2) return@matchAllMethodIndicesForEach
+            val sdkRegister = freeRegisters.getFreeRegister()
+            val enabledRegister = freeRegisters.getFreeRegister()
+            if (sdkRegister >= 16 || enabledRegister >= 16) return@matchAllMethodIndicesForEach
+
+            addInstructions(
+                index + 2,
+                """
+                    sget v$sdkRegister, Landroid/os/Build${'$'}VERSION;->SDK_INT:I
+                    const/16 v$enabledRegister, 0x21
+                    if-lt v$sdkRegister, v$enabledRegister, :miraie_webview_dark_skip_$index
+                    const/4 v$enabledRegister, 0x1
+                    invoke-virtual {v$webSettingsRegister, v$enabledRegister}, Landroid/webkit/WebSettings;->setAlgorithmicDarkeningAllowed(Z)V
+                    :miraie_webview_dark_skip_$index
+                """.trimIndent()
+            )
+        }
     }
 }
