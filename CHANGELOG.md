@@ -1,3 +1,9 @@
+## [1.0.0-dev.5](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* finish remaining MirAIe dark-mode surfaces and remove PR workflow ([5e8e991](https://github.com/sarvottam99/Miraie-Patches/commit/5e8e9916b01d6228e6b5af009a38510153077f9b))
+
 ## [1.0.0-dev.4](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-10-30)
 
 ### 🐛 Bug Fixes
