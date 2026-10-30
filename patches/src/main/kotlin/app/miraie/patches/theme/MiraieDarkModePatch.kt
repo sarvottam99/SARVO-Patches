@@ -9,13 +9,14 @@ import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Element
 
 /*
- * MirAIe's custom layouts were responsible for many of the remaining light
- * surfaces. Rather than maintaining a growing collection of per-layout
- * substitutions, let Android perform its native Force Dark transformation.
+ * MirAIe's resources are compiled inside the XAPK's base APK. In a Morphe
+ * resource patch, document(path) resolves a compiled values resource through
+ * the resource table. get(path, false) only gives a writable file handle and
+ * ordinary filesystem existence checks return false for compiled values XML.
+ * Use document() directly to read and modify the AppTheme entry.
  *
- * Force Dark requires a light theme. The previous implementation changed
- * AppTheme to Theme.AppCompat.DayNight, which disables Android Force Dark.
- * Restore the original AppCompat.Light parent and explicitly allow Force Dark.
+ * Force Dark requires a light theme. Keep the original AppCompat.Light parent
+ * (or restore it if a prior patch changed it to DayNight) and opt in explicitly.
  */
 private val miraieForceDarkResourcePatch = resourcePatch(
     name = "MirAIe native Force Dark",
@@ -25,74 +26,43 @@ private val miraieForceDarkResourcePatch = resourcePatch(
     compatibleWith(COMPATIBILITY_MIRAIE)
 
     execute {
-        val styleFiles = listOf(
-            "res/values/styles.xml",
-            "res/values-v29/styles.xml"
-        )
+        document("res/values/styles.xml").use { xml ->
+            val styles = xml.getElementsByTagName("style")
+            val appTheme = (0 until styles.length)
+                .mapNotNull { styles.item(it) as? Element }
+                .firstOrNull { it.getAttribute("name") == "AppTheme" }
+                ?: throw PatchException("MirAIe AppTheme was not found; expected app version 01.4.32")
 
-        var foundAppTheme = false
-
-        for (path in styleFiles) {
-            val file = get(path, false)
-            if (!file.exists()) {
-                if (path == "res/values/styles.xml") {
-                    throw PatchException("MirAIe res/values/styles.xml was not found")
-                }
-                continue
+            val parent = appTheme.getAttribute("parent")
+            val lightParent = when {
+                parent.contains("Theme.AppCompat.DayNight") ->
+                    parent.replace("Theme.AppCompat.DayNight", "Theme.AppCompat.Light")
+                parent.contains("Theme.MaterialComponents.DayNight") ->
+                    parent.replace("Theme.MaterialComponents.DayNight", "Theme.MaterialComponents.Light")
+                parent.contains("Theme.AppCompat.Light") ||
+                    parent.contains("Theme.MaterialComponents.Light") -> parent
+                else -> throw PatchException(
+                    "Unexpected MirAIe AppTheme parent '$parent'; cannot safely enable native Force Dark"
+                )
+            }
+            if (parent != lightParent) {
+                appTheme.setAttribute("parent", lightParent)
             }
 
-            document(path).use { xml ->
-                val styles = xml.getElementsByTagName("style")
-                var foundAppThemeInFile = false
+            val items = appTheme.getElementsByTagName("item")
+            val forceDarkItem = (0 until items.length)
+                .mapNotNull { items.item(it) as? Element }
+                .firstOrNull { it.getAttribute("name") == "android:forceDarkAllowed" }
 
-                for (index in 0 until styles.length) {
-                    val style = styles.item(index) as? Element ?: continue
-                    if (style.getAttribute("name") != "AppTheme") continue
-
-                    foundAppThemeInFile = true
-                    foundAppTheme = true
-
-                    val parent = style.getAttribute("parent")
-                    val lightParent = when {
-                        parent.isEmpty() && path == "res/values-v29/styles.xml" -> ""
-                        parent.contains("Theme.AppCompat.DayNight") ->
-                            parent.replace("Theme.AppCompat.DayNight", "Theme.AppCompat.Light")
-                        parent.contains("Theme.MaterialComponents.DayNight") ->
-                            parent.replace("Theme.MaterialComponents.DayNight", "Theme.MaterialComponents.Light")
-                        parent.contains("Theme.AppCompat.Light") ||
-                            parent.contains("Theme.MaterialComponents.Light") -> parent
-                        else -> throw PatchException(
-                            "Unexpected AppTheme parent '$parent'; cannot safely enable native Force Dark"
-                        )
-                    }
-                    if (lightParent.isNotEmpty() && parent != lightParent) {
-                        style.setAttribute("parent", lightParent)
-                    }
-
-                    val items = style.getElementsByTagName("item")
-                    val forceDarkItem = (0 until items.length)
-                        .mapNotNull { items.item(it) as? Element }
-                        .firstOrNull { it.getAttribute("name") == "android:forceDarkAllowed" }
-
-                    if (forceDarkItem != null) {
-                        forceDarkItem.textContent = "true"
-                    } else {
-                        xml.createElement("item").also {
-                            it.setAttribute("name", "android:forceDarkAllowed")
-                            it.textContent = "true"
-                            style.appendChild(it)
-                        }
-                    }
-                }
-
-                if (path == "res/values/styles.xml" && !foundAppThemeInFile) {
-                    throw PatchException("MirAIe AppTheme was not found; expected app version 01.4.32")
+            if (forceDarkItem != null) {
+                forceDarkItem.textContent = "true"
+            } else {
+                xml.createElement("item").also {
+                    it.setAttribute("name", "android:forceDarkAllowed")
+                    it.textContent = "true"
+                    appTheme.appendChild(it)
                 }
             }
-        }
-
-        if (!foundAppTheme) {
-            throw PatchException("MirAIe AppTheme was not found; expected app version 01.4.32")
         }
     }
 }
@@ -104,11 +74,8 @@ private val ENERGY_CHART_PREPARE_BAR_CHART = Fingerprint(
     parameters = listOf("Lcom/panasonic/in/miraie/widgets/EnergyConsumption\$Type;")
 )
 
-/*
- * MPAndroidChart draws its own labels and axes, so those are not reliably
- * recolored by Android Force Dark. Keep the existing chart-specific handling.
- * This follows the system uiMode and does not affect other app screens.
- */
+/* MPAndroidChart draws its own labels and axes, so Force Dark cannot reliably
+ * recolor them. Keep only the chart-specific system-uiMode handling. */
 @Suppress("unused")
 val miraieDarkModePatch = bytecodePatch(
     name = "Dark mode",
