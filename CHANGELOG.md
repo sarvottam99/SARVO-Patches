@@ -1,3 +1,9 @@
+## [1.0.0-dev.6](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* improve weekly labels and remaining dark screens ([2aaebeb](https://github.com/sarvottam99/Miraie-Patches/commit/2aaebeb5ea3c0027aa12896ac49774913789946c))
+
 ## [1.0.0-dev.5](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-10-30)
 
 ### 🐛 Bug Fixes
