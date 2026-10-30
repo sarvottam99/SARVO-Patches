@@ -16,7 +16,7 @@ val spoofSignaturePatch = resourcePatch (
     name = "Spoof signature",
     description = "Spoofs the package signature of the original APK.",
     default = false
-    compatibleWith(COMPATIBILITY_MIRAIE)
 ) {
+    compatibleWith(COMPATIBILITY_MIRAIE)
     dependsOn(baseSpoofSignaturePatch)
 }

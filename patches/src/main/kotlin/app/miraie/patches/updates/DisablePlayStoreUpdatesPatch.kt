@@ -75,8 +75,8 @@ internal val disablePlayStoreUpdatesPatch = bytecodePatch(
             "This patch may cause unexpected issues with some apps and does not work if the " +
             "app is installed by root mounting",
     default = false
-    compatibleWith(COMPATIBILITY_MIRAIE)
 ) {
+    compatibleWith(COMPATIBILITY_MIRAIE)
 
     dependsOn(disablePlayStoreUpdatesResourcePatch)
 

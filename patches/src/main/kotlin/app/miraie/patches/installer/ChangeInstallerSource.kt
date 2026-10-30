@@ -17,8 +17,8 @@ val changeInstallerSource = resourcePatch(
     name = "Change installer source",
     description = "Spoofs the installer source so the app appears to be installed from an app store.",
     default = false
-    compatibleWith(COMPATIBILITY_MIRAIE)
 ) {
+    compatibleWith(COMPATIBILITY_MIRAIE)
     val packageInstallerName = stringOption(
         key = "packageInstallerName",
         default = "com.android.vending",
