@@ -148,7 +148,7 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
                 val textView = textViews.item(index) as? Element ?: continue
                 if (miraieElementAttribute(textView, "textColor") == "@color/black") {
                     miraieSetAttribute(
-                        textView, "textColor", "@color/miraie_dark_text_primary", ANDROID_NS, "android"
+                        textView, "textColor", "@color/primary_text_color", ANDROID_NS, "android"
                     )
                 }
             }
@@ -162,15 +162,6 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
             )
         }
 
-        val basePalette = get("res/values/miraie_dark_palette.xml", false)
-        basePalette.parentFile?.mkdirs()
-        basePalette.writeText(
-            """<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="miraie_dark_text_primary">#FF212121</color>
-</resources>
-"""
-        )
 
         val nightPalette = get("res/values-night/colors.xml", false)
         nightPalette.parentFile?.mkdirs()
@@ -202,7 +193,6 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
     <color name="divider">#FF383838</color>
     <color name="gray_color">#FFAAAAAA</color>
     <color name="devices_count_color">#FFBDBDBD</color>
-    <color name="miraie_dark_text_primary">#FFF5F5F5</color>
 
     <color name="ac_fault_bg_color">#FF242424</color>
     <color name="ac_generic_enabled_color">#FFF5F5F5</color>
