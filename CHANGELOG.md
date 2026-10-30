@@ -1,3 +1,9 @@
+## [1.0.0-dev.8](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* switch MirAIe dark mode to native Force Dark ([e81f371](https://github.com/sarvottam99/Miraie-Patches/commit/e81f3713c3a691cb916bf8fe9790463399fe0d0d))
+
 ## [1.0.0-dev.7](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-10-30)
 
 ### 🐛 Bug Fixes

@@ -19,7 +19,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.7](https://github.com/sarvottam99/Miraie-Patches/releases/tag/v1.0.0-dev.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.0.0-dev.8](https://github.com/sarvottam99/Miraie-Patches/releases/tag/v1.0.0-dev.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 MirAIe&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -34,7 +34,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from an app store. | • Spoofed package installer name |
-| [Dark mode](#dark-mode) | Adds system-following dark mode and fixes dashboard, E-Care, account, AC settings, notifications and energy-chart contrast. |  |
+| [Dark mode](#dark-mode) | Uses Android native Force Dark for MirAIe and retains readable energy-chart labels. |  |
 | [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
 | [Spoof signature](#spoof-signature) | Spoofs the package signature of the original APK. |  |
 
