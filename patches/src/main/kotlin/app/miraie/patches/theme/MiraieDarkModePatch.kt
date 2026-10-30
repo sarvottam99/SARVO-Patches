@@ -971,7 +971,7 @@ val miraieDarkModePatch = bytecodePatch(
             """.trimIndent()
         )
 
-        MIRAIE_WEBVIEW_GET_SETTINGS.matchAllMethodIndicesForEach(requireMatches = false) {
+        MIRAIE_WEBVIEW_GET_SETTINGS.matchAllMethodIndicesForEach(requireMatches = false) { index ->
             // getSettings() must be followed by move-result-object; insert only
             // after that result so the DEX verifier sees a valid instruction pair.
             val resultInstruction = try {
