@@ -41,25 +41,85 @@ private fun miraieSetAttribute(
     element.setAttributeNS(namespace, "$prefix:$localName", value)
 }
 
+
+private fun miraieIsLightHex(value: String): Boolean {
+    val raw = value.trim().removePrefix("#")
+    val rgb = when (raw.length) {
+        3 -> raw.map { "$it$it" }.joinToString("")
+        4 -> raw.substring(1).map { "$it$it" }.joinToString("")
+        6 -> raw
+        8 -> raw.substring(2)
+        else -> return false
+    }
+    val r = rgb.substring(0, 2).toIntOrNull(16) ?: return false
+    val g = rgb.substring(2, 4).toIntOrNull(16) ?: return false
+    val b = rgb.substring(4, 6).toIntOrNull(16) ?: return false
+    val luminance = (299 * r + 587 * g + 114 * b) / 1000
+    return luminance >= 212
+}
+
 private fun miraieIsWhiteColor(value: String): Boolean {
-    return value.trim().lowercase() in setOf(
+    val color = value.trim().lowercase()
+    return color in setOf(
         "@color/white",
         "@android:color/white",
         "#fff",
         "#ffffff",
         "#ffffffff"
-    )
+    ) || color.contains("white") ||
+        color.contains("light_blue") ||
+        color.contains("light_grey") ||
+        color.contains("light_gray") ||
+        color.contains("background_location_") ||
+        miraieIsLightHex(color)
 }
 
 private fun miraieIsBlackColor(value: String): Boolean {
-    return value.trim().lowercase() in setOf(
+    val color = value.trim().lowercase()
+    if (color.startsWith("#")) {
+        val raw = color.removePrefix("#")
+        val rgb = when (raw.length) {
+            3 -> raw.map { "$it$it" }.joinToString("")
+            4 -> raw.substring(1).map { "$it$it" }.joinToString("")
+            6 -> raw
+            8 -> raw.substring(2)
+            else -> ""
+        }
+        if (rgb.length == 6) {
+            val r = rgb.substring(0, 2).toIntOrNull(16) ?: 255
+            val g = rgb.substring(2, 4).toIntOrNull(16) ?: 255
+            val b = rgb.substring(4, 6).toIntOrNull(16) ?: 255
+            val luminance = (299 * r + 587 * g + 114 * b) / 1000
+            return luminance <= 125
+        }
+    }
+    return color in setOf(
         "@color/black",
         "@android:color/black",
         "#000",
         "#000000",
         "#ff000000"
-    )
+    ) || color.contains("black") ||
+        color.contains("primarydark") ||
+        color.contains("dark_text") ||
+        color.contains("text_dark") ||
+        color.contains("blackish") ||
+        color.contains("primary_text_default_material_light")
 }
+
+private fun miraieTextStyleColor(value: String): String? {
+    val style = value.trim().lowercase().substringAfterLast('/')
+    return when {
+        style.contains("black") || style.contains("primarydark") ||
+            style.contains("dark_text") || style.contains("blackish") ->
+            "@color/primary_text_color"
+        style.contains("primarygrey") || style.contains("primarygray") ||
+            style.contains("grey737373") || style.contains("gray737373") ->
+            "@color/primary_gray_text_color"
+        else -> null
+    }
+}
+
 
 
 /*
@@ -75,10 +135,49 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
     compatibleWith(COMPATIBILITY_MIRAIE)
 
     execute {
+        fun cloneNightDrawable(name: String, replacementColor: String = "@color/card_view_color"): Boolean {
+            if (!name.matches(Regex("[A-Za-z0-9_]+"))) return false
+
+            val original = get("res/drawable/$name.xml", false)
+            if (!original.exists()) return false
+
+            val sourceXml = original.readText()
+            val attributePattern = Regex(
+                """((?:android:)?(?:color|fillColor|startColor|endColor|strokeColor)=")([^"]+)(")""",
+                RegexOption.IGNORE_CASE
+            )
+            var changed = false
+            val darkXml = attributePattern.replace(sourceXml) { match ->
+                val value = match.groupValues[2].trim()
+                val lower = value.lowercase()
+                val lightReference = value.startsWith("@") && (
+                    lower.contains("white") ||
+                    lower.contains("light_blue") ||
+                    lower.contains("light_grey") ||
+                    lower.contains("light_gray") ||
+                    lower.contains("background_location_")
+                )
+                if (lightReference || (value.startsWith("#") && miraieIsLightHex(value))) {
+                    changed = true
+                    match.groupValues[1] + replacementColor + match.groupValues[3]
+                } else {
+                    match.value
+                }
+            }
+
+            if (!changed) return false
+
+            val night = get("res/drawable-night/$name.xml", false)
+            night.parentFile?.mkdirs()
+            night.writeText(darkXml)
+            return true
+        }
+
         fun patchLayout(
             path: String,
             rootBackground: String,
-            patchTabs: Boolean = false
+            patchTabs: Boolean = false,
+            forceNeutralText: Boolean = false
         ) {
             document(path).use { xml ->
                 val root = xml.documentElement
@@ -89,28 +188,60 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
                     val element = elements.item(index) as? Element ?: continue
                     val tag = element.tagName
 
-                    val background = miraieElementAttribute(element, "background")
-                    if (miraieIsWhiteColor(background)) {
-                        miraieSetAttribute(
-                            element, "background", "@color/card_view_color", ANDROID_NS, "android"
-                        )
-                    }
-
-                    val cardBackground = miraieElementAttribute(element, "cardBackgroundColor")
-                    if (tag.contains("CardView", ignoreCase = true) &&
-                        (cardBackground.isEmpty() || miraieIsWhiteColor(cardBackground))
+                    fun patchBackgroundAttribute(
+                        attributeName: String,
+                        namespace: String,
+                        prefix: String
                     ) {
-                        miraieSetAttribute(
-                            element, "cardBackgroundColor", "@color/card_view_color", APP_NS, "app"
-                        )
+                        val value = miraieElementAttribute(element, attributeName).trim()
+                        if (value.isEmpty()) return
+
+                        if (value.startsWith("@drawable/")) {
+                            val drawableName = value.substringAfter('/').substringBefore('#')
+                            val changed = cloneNightDrawable(drawableName)
+                            if (!changed && (
+                                drawableName.contains("white", ignoreCase = true) ||
+                                drawableName.contains("light_blue", ignoreCase = true) ||
+                                drawableName.contains("background_location_", ignoreCase = true)
+                            )) {
+                                miraieSetAttribute(
+                                    element, attributeName, "@color/card_view_color", namespace, prefix
+                                )
+                            }
+                        } else if (miraieIsWhiteColor(value)) {
+                            miraieSetAttribute(
+                                element, attributeName, "@color/card_view_color", namespace, prefix
+                            )
+                        }
                     }
 
-                    if (tag.endsWith("TextView") || tag == "TextView") {
+                    patchBackgroundAttribute("background", ANDROID_NS, "android")
+                    patchBackgroundAttribute("backgroundTint", ANDROID_NS, "android")
+                    patchBackgroundAttribute("cardBackgroundColor", APP_NS, "app")
+
+                    if (tag.endsWith("TextView", ignoreCase = true) || tag == "TextView") {
                         val textColor = miraieElementAttribute(element, "textColor")
-                        if (miraieIsBlackColor(textColor)) {
-                            miraieSetAttribute(
-                                element, "textColor", "@color/primary_text_color", ANDROID_NS, "android"
-                            )
+                        val style = miraieElementAttribute(element, "textAppearance").ifEmpty {
+                            miraieElementAttribute(element, "style")
+                        }
+                        val styleColor = miraieTextStyleColor(style)
+                        val colorName = textColor.trim().lowercase()
+                        val isAccentText = listOf(
+                            "blue", "accent", "green", "success", "warning", "error", "red", "link"
+                        ).any { colorName.contains(it) }
+                        when {
+                            forceNeutralText && !isAccentText ->
+                                miraieSetAttribute(
+                                    element, "textColor", "@color/primary_text_color", ANDROID_NS, "android"
+                                )
+                            miraieIsBlackColor(textColor) ->
+                                miraieSetAttribute(
+                                    element, "textColor", "@color/primary_text_color", ANDROID_NS, "android"
+                                )
+                            styleColor != null ->
+                                miraieSetAttribute(
+                                    element, "textColor", styleColor, ANDROID_NS, "android"
+                                )
                         }
                     }
 
@@ -133,6 +264,10 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
             topCornersOnly: Boolean = false,
             oval: Boolean = false
         ) {
+            // Preserve the original shape/selector/gradient whenever it contains
+            // a light fill. Only fall back to a simple shape for known plain cards.
+            if (cloneNightDrawable(name, fill)) return
+
             val file = get("res/drawable-night/$name.xml", false)
             file.parentFile?.mkdirs()
             val shape = if (oval) "oval" else "rectangle"
@@ -216,13 +351,22 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
             "res/layout/activity_n_w.xml",
             "res/layout/fragment_n_w_exclusive_notification_detailed_b_s.xml",
             "res/layout/activity_my_subscriptions.xml",
-            "res/layout/activity_settings_layout.xml"
+            "res/layout/activity_settings_layout.xml",
+            "res/layout/content_ac_widget_layout.xml",
+            "res/layout/fragment_settings_profile.xml",
+            "res/layout/activity_proximity_custom_radius.xml"
+        )
+        val neutralAccountScreenLayouts = setOf(
+            "res/layout/activity_user_account.xml",
+            "res/layout/fragment_useraccount_miraie.xml",
+            "res/layout/fragment_others_account_list.xml"
         )
         screenLayouts.forEach { path ->
             patchLayout(
                 path,
                 "@color/screen_background_color",
-                patchTabs = path.contains("energy_comsumption") || path.contains("user_account") || path.contains("ecare")
+                patchTabs = path.contains("energy_comsumption") || path.contains("user_account") || path.contains("ecare"),
+                forceNeutralText = path in neutralAccountScreenLayouts
             )
         }
 
@@ -255,10 +399,57 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
             "res/layout/ecare_orders_bottom_sheet_inner_items.xml",
             "res/layout/nw_notification_item_view.xml",
             "res/layout/nw_exclusive_notification_item_view.xml",
-            "res/layout/nw_exclusive_notification_list_item_view.xml"
+            "res/layout/nw_exclusive_notification_list_item_view.xml",
+            "res/layout/item_plan_benefit.xml",
+            "res/layout/content_linked_account_item.xml",
+            "res/layout/content_unlinked_account_item.xml",
+            "res/layout/hamburger_bottomsheet_inner_items.xml",
+            "res/layout/account_popup_menu.xml",
+            "res/layout/snackbar_layout.xml",
+            "res/layout/alert_snackbar.xml",
+            "res/layout/proximity_control_widget.xml",
+            "res/layout/proximity_manual_location_update_warning_alert_popup.xml",
+            "res/layout/item_ac_manage_control.xml",
+            "res/layout/item_device_detail_control.xml",
+            "res/layout/content_settings_home_widget_layout.xml",
+            "res/layout/room_display_widget_layout.xml",
+            "res/layout/item_single_device_switch.xml",
+            "res/layout/common_room_others_recyclers.xml",
+            "res/layout/content_room_others_layout.xml",
+            "res/layout/content_rooms_header_row.xml",
+            "res/layout/item_room_bottom_sheet.xml",
+            "res/layout/activity_change_room.xml",
+            "res/layout/fragment_room_assignment_popup.xml",
+            "res/layout/layout_power_menu.xml",
+            "res/layout/item_power_menu.xml",
+            "res/layout/ecare_view_all_benefits_bottomsheet_layout.xml",
+            "res/layout/ecare_cart_inner_items.xml",
+            "res/layout/ecare_cart_review_inner_items.xml",
+            "res/layout/warranty_expiry_inner_items_layout.xml",
+            "res/layout/warranty_expiry_btm_sheet_layout.xml"
+        )
+        val forceNeutralTextLayouts = setOf(
+            "res/layout/content_user_account_detail.xml",
+            "res/layout/content_user_account_mobile_number_layout.xml",
+            "res/layout/content_user_home_location.xml",
+            "res/layout/content_linked_account_item.xml",
+            "res/layout/content_unlinked_account_item.xml",
+            "res/layout/item_plan_benefit.xml",
+            "res/layout/ecare_details_warranty_recycler_items_layout.xml",
+            "res/layout/ecare_my_orders_inner_items.xml",
+            "res/layout/ecare_my_orders_inner_recycler_items.xml",
+            "res/layout/ecare_orders_bottom_sheet_inner_items.xml",
+            "res/layout/snackbar_layout.xml",
+            "res/layout/alert_snackbar.xml",
+            "res/layout/proximity_control_widget.xml",
+            "res/layout/proximity_manual_location_update_warning_alert_popup.xml"
         )
         cardLayouts.forEach { path ->
-            patchLayout(path, "@color/card_view_color")
+            patchLayout(
+                path,
+                "@color/card_view_color",
+                forceNeutralText = path in forceNeutralTextLayouts
+            )
         }
 
         // BottomNavigationView uses a light Material overlay in the original XML.
@@ -304,6 +495,35 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
         writeNightShape("card_background_shape", radiusDp = 12)
         writeNightShape("card_background_shape_room", radiusDp = 12)
         writeNightShape("bg_card_rect_primary_light", radiusDp = 12)
+
+        listOf(
+            "pgo_subscribe_whats_included_bg",
+            "pgo_device_needed_card_bg",
+            "pgo_plan_card_unselected_bg",
+            "e_care_product_without_dropdown_bg",
+            "warrnty_type_dashboard_card_bg",
+            "e_care_service_req_open_top_bg",
+            "e_care_white_bg",
+            "bottom_sheet_hamburger_bg",
+            "pgo_top_round_corner_device_link_bg",
+            "pgo_bottom_round_corner_device_linked",
+            "room_name_layout_bg",
+            "background_item_row",
+            "e_care_amc_not_selected_bg",
+            "ecare_amc_dynamic_tag_bg",
+            "device_control_background",
+            "acmanage_item_background",
+            "profile_page_button_selector",
+            "device_manage_control_background",
+            "device_control_background_selected",
+            "device_control_icon_background",
+            "device_control_icon_background_disabled",
+            "device_control_icon_background_enabled",
+            "button_white_rounded",
+            "button_with_white_bg",
+            "btn_bg_white_color_with_blue_border",
+            "circle_white"
+        ).forEach { cloneNightDrawable(it) }
 
         // All colors below are already present in the original MirAIe 01.4.32
         // resource table. Only their night-qualified values are being overridden.
@@ -363,6 +583,16 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
     <color name="nw_time_text_color">#FF9E9E9E</color>
     <color name="nw_read_notification_bg_color">#FF252525</color>
     <color name="nw_unread_notification_bg_color">#FF1C1C1C</color>
+
+    <color name="ecare_product_header_blackish_color">#FFE0E0E0</color>
+    <color name="e_warranty_text_light_dark_second">#FFE0E0E0</color>
+    <color name="e_care_service_closed_bg">#FF303030</color>
+    <color name="vdp_success_background_color">#FF303030</color>
+    <color name="vdp_success_text_color_color">#FFF5F5F5</color>
+    <color name="background_location_denied_popup_msg">#FF303030</color>
+    <color name="background_location_permission_popup_msg">#FF303030</color>
+    <color name="design_snackbar_background_color">#FF303030</color>
+    <color name="tws_snackbar_bg_color">#FF303030</color>
 
     <color name="button_2_background">#FF333333</color>
     <color name="button_2_text_color">#FFF5F5F5</color>
