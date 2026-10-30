@@ -354,7 +354,11 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
             "res/layout/activity_settings_layout.xml",
             "res/layout/content_ac_widget_layout.xml",
             "res/layout/fragment_settings_profile.xml",
-            "res/layout/activity_proximity_custom_radius.xml"
+            "res/layout/activity_proximity_custom_radius.xml",
+            "res/layout/content_ac_layout.xml",
+            "res/layout/activity_service_request_history.xml",
+            "res/layout/fragment_pana_anchor_history.xml",
+            "res/layout/fragment_change_password.xml"
         )
         val neutralAccountScreenLayouts = setOf(
             "res/layout/activity_user_account.xml",
@@ -395,6 +399,7 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
             "res/layout/ecare_details_warranty_recycler_items_layout.xml",
             "res/layout/ecare_my_orders_inner_items.xml",
             "res/layout/ecare_my_orders_inner_recycler_items.xml",
+            "res/layout/e_care_service_request_inner_layout.xml",
             "res/layout/ecare_amc_plans_inner_items_layout.xml",
             "res/layout/ecare_orders_bottom_sheet_inner_items.xml",
             "res/layout/nw_notification_item_view.xml",
@@ -452,6 +457,109 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
             )
         }
 
+        // MIRAIE_FOLLOWUP_V6_FIXES
+        // Home dashboard: this RecyclerView is styled through pagerStyle, whose
+        // light background is not declared directly in the layout XML.
+        document("res/layout/content_ac_layout.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                val id = miraieElementAttribute(element, "id").substringAfterLast('/')
+                if (id == "dashboard_ac_rv" || id == "rl_ac") {
+                    miraieSetAttribute(
+                        element, "background", "@color/screen_background_color", ANDROID_NS, "android"
+                    )
+                }
+            }
+        }
+
+        // Closed E-Care service cards get their CardView background from a style
+        // rather than an XML attribute. Set it explicitly, and darken the white
+        // inner body through the normal layout background pass above.
+        document("res/layout/e_care_service_request_inner_layout.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                if (miraieElementAttribute(element, "id").substringAfterLast('/') == "closed_req_layout") {
+                    miraieSetAttribute(
+                        element, "cardBackgroundColor", "@color/card_view_color", APP_NS, "app"
+                    )
+                }
+            }
+        }
+
+        // Language selector is a rounded white dialog plus separately inflated
+        // language rows. Preserve the drawable reference so drawable-night can
+        // supply its dark fill without removing the rounded corners.
+        patchLayout(
+            "res/layout/fragment_choose_language_dialog.xml",
+            "@drawable/card_background_shape_alert"
+        )
+        patchLayout("res/layout/change_language_item.xml", "@color/card_view_color")
+
+        // Service History hosts fragments in this FrameLayout. Give both the
+        // activity frame and the selected fragment an explicit dark canvas.
+        document("res/layout/activity_service_request_history.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                if (miraieElementAttribute(element, "id").substringAfterLast('/') == "fragment_container_fl") {
+                    miraieSetAttribute(
+                        element, "background", "@color/screen_background_color", ANDROID_NS, "android"
+                    )
+                }
+            }
+        }
+        document("res/layout/fragment_pana_anchor_history.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                val id = miraieElementAttribute(element, "id").substringAfterLast('/')
+                if (id.isEmpty() || id == "swipe_refresh") {
+                    miraieSetAttribute(
+                        element, "background", "@color/screen_background_color", ANDROID_NS, "android"
+                    )
+                }
+            }
+        }
+
+        // Change Password: the original fields are unfilled/transparent on the
+        // dark canvas. Use Material filled boxes and readable text/hint colors.
+        document("res/layout/fragment_change_password.xml").use { xml ->
+            val elements = xml.getElementsByTagName("*")
+            for (index in 0 until elements.length) {
+                val element = elements.item(index) as? Element ?: continue
+                val id = miraieElementAttribute(element, "id").substringAfterLast('/')
+                when (id) {
+                    "enter_current_password_layout",
+                    "enter_new_password_layout",
+                    "confirm_passwordlayout" -> {
+                        miraieSetAttribute(element, "boxBackgroundMode", "1", APP_NS, "app")
+                        miraieSetAttribute(
+                            element, "boxBackgroundColor", "@color/card_view_color", APP_NS, "app"
+                        )
+                        miraieSetAttribute(
+                            element, "boxStrokeColor", "@color/primary_gray_text_color", APP_NS, "app"
+                        )
+                        miraieSetAttribute(
+                            element, "hintTextColor", "@color/edit_hint_text_color", APP_NS, "app"
+                        )
+                    }
+                    "enter_current_password", "enter_new_password", "enterPassword" -> {
+                        miraieSetAttribute(
+                            element, "textColor", "@color/primary_text_color", ANDROID_NS, "android"
+                        )
+                        miraieSetAttribute(
+                            element, "textColorHint", "@color/edit_hint_text_color", ANDROID_NS, "android"
+                        )
+                        miraieSetAttribute(
+                            element, "backgroundTint", "@color/primary_gray_text_color", ANDROID_NS, "android"
+                        )
+                    }
+                }
+            }
+        }
+
         // BottomNavigationView uses a light Material overlay in the original XML.
         document("res/layout/activity_homescreen.xml").use { xml ->
             val elements = xml.getElementsByTagName("*")
@@ -493,6 +601,7 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
         writeNightShape("nw_tab_selected_drawable", radiusDp = 22, fill = "@color/light_grey")
         writeNightShape("design_snackbar_background", radiusDp = 4)
         writeNightShape("card_background_shape", radiusDp = 12)
+        writeNightShape("card_background_shape_alert", radiusDp = 12)
         writeNightShape("card_background_shape_room", radiusDp = 12)
         writeNightShape("bg_card_rect_primary_light", radiusDp = 12)
 
@@ -554,6 +663,9 @@ private val miraieDarkModeResourcesPatch = resourcePatch(
     <color name="edit_hint_text_color">#FF9E9E9E</color>
     <color name="language_text_color">#FFF5F5F5</color>
     <color name="language_sub_heading_text_color">#FFBDBDBD</color>
+    <color name="choose_language_heading_text_color">#FFF5F5F5</color>
+    <color name="fi_info_text_color">#FF6996F9</color>
+    <color name="change_language_check_box_color">#FF6D85F7</color>
     <color name="divider">#FF383838</color>
     <color name="gray_color">#FFAAAAAA</color>
     <color name="devices_count_color">#FFBDBDBD</color>
@@ -660,6 +772,17 @@ val miraieDarkModePatch = bytecodePatch(
                 invoke-virtual {v0}, Lcom/github/mikephil/charting/charts/Chart;->getLegend()Lcom/github/mikephil/charting/components/Legend;
                 move-result-object v3
                 invoke-virtual {v3, v1}, Lcom/github/mikephil/charting/components/ComponentBase;->setTextColor(I)V
+                iget-object v0, p0, Lcom/panasonic/in/miraie/widgets/EnergyConsumption;->mBarChart:Lcom/github/mikephil/charting/charts/BarChart;
+                invoke-virtual {v0}, Lcom/github/mikephil/charting/charts/Chart;->getXAxis()Lcom/github/mikephil/charting/components/XAxis;
+                move-result-object v3
+                const/4 v1, 0x7
+                const/4 v2, 0x1
+                invoke-virtual {v3, v1, v2}, Lcom/github/mikephil/charting/components/AxisBase;->setLabelCount(IZ)V
+                const/high16 v1, 0x3f800000
+                invoke-virtual {v3, v1}, Lcom/github/mikephil/charting/components/AxisBase;->setGranularity(F)V
+                const/4 v1, 0x1
+                invoke-virtual {v3, v1}, Lcom/github/mikephil/charting/components/AxisBase;->setGranularityEnabled(Z)V
+                invoke-virtual {v3, v1}, Lcom/github/mikephil/charting/components/XAxis;->setAvoidFirstLastClipping(Z)V
             """.trimIndent()
         )
     }
