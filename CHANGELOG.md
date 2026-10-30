@@ -1,3 +1,9 @@
+## [1.0.0-dev.3](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* avoid adding unregistered dark mode color resource ([5f5159f](https://github.com/sarvottam99/Miraie-Patches/commit/5f5159f905420bfbb5b02e80a18ff4d0df80e917))
+
 ## [1.0.0-dev.2](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-10-30)
 
 ### 🐛 Bug Fixes
