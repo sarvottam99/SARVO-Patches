@@ -9,6 +9,6 @@ object Constants {
         name = "MirAIe",
         packageName = "com.panasonic.in.miraie",
         apkFileType = ApkFileType.XAPK,
-        targets = listOf(AppTarget(version = "1.4.32"))
+        targets = listOf(AppTarget(version = "01.4.32"))
     )
 }

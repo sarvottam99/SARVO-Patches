@@ -28,7 +28,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 
 **🎯 Supported versions:**
 
-| 1.4.32 |
+| 01.4.32 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -58,7 +58,7 @@ Miraie Patches are licensed under the [GNU General Public License v3.0](LICENSE)
 ## MirAIe support
 
 This repository contains patches for Panasonic MirAIe Android app package
-`com.panasonic.in.miraie`, targeting version `1.4.32` (XAPK).
+`com.panasonic.in.miraie`, targeting version `01.4.32` (XAPK).
 The bundle is intended for use with Morphe Manager; it is an independent,
 community-maintained project and is not affiliated with the Morphe project
 or Panasonic.
