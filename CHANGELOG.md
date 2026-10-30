@@ -1,3 +1,9 @@
+## [1.0.0-dev.4](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* finish MirAIe dark mode and target version metadata ([644c0f0](https://github.com/sarvottam99/Miraie-Patches/commit/644c0f0123a06b5fa1f6b473ec4e742d30582bd5))
+
 ## [1.0.0-dev.3](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-10-30)
 
 ### 🐛 Bug Fixes

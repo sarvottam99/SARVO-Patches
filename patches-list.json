@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0-dev.3",
+  "version": "1.0.0-dev.4",
   "patches": [
     {
       "name": "Change installer source",
@@ -18,7 +18,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "1.4.32",
+              "version": "01.4.32",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -47,7 +47,7 @@
     },
     {
       "name": "Dark mode",
-      "description": "Adds system-following dark mode and fixes MirAIe dashboard, settings, AC controls and energy-chart contrast.",
+      "description": "Adds system-following dark mode and fixes dashboard, E-Care, account, AC settings, notifications and energy-chart contrast.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -61,7 +61,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "1.4.32",
+              "version": "01.4.32",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -88,7 +88,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "1.4.32",
+              "version": "01.4.32",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -115,7 +115,7 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "1.4.32",
+              "version": "01.4.32",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
