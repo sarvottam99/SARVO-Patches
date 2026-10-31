@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0",
+  "version": "1.1.0-dev.1",
   "patches": [
     {
       "name": "Change installer source",
@@ -76,6 +76,33 @@
       "name": "Disable Play Store updates",
       "description": "Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting",
       "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.panasonic.in.miraie",
+          "name": "MirAIe",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "01.4.32",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Lifestyle tab",
+      "description": "Hides only the Lifestyle tab from MirAIe's bottom navigation. Other tabs, icons and their order remain unchanged.",
+      "default": false,
       "category": null,
       "compatiblePackages": [
         {
