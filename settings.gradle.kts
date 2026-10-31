@@ -1,4 +1,4 @@
-rootProject.name = "miraie-patches"
+rootProject.name = "sarvo-patches"
 
 pluginManagement {
     repositories {

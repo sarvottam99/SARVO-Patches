@@ -37,8 +37,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Semantic release runs its own Gradle build command.
-      # Only dev and main branch will generate a release as specified by .releaserc
+      # Semantic release builds and publishes the SARVO Patches bundle.
+      # Only dev and main generate releases, as specified in .releaserc.
       - name: Release
         uses: cycjimmy/semantic-release-action@v8
         id: release
@@ -50,11 +50,10 @@ jobs:
         if: steps.release.outputs.new_release_published == 'true'
         uses: actions/attest-build-provenance@v4
         with:
-          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-name: 'SARVO Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
 
       # Always verify compilation when semantic-release did not publish a release.
-      # This covers non-main/dev branches, chore commits, docs commits, etc.
       - name: Verify project compiles
         if: steps.release.outputs.new_release_published != 'true'
         env:
