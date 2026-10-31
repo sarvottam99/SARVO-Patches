@@ -1,3 +1,9 @@
+## [1.1.0-dev.3](https://github.com/sarvottam99/SARVO-Patches/compare/v1.1.0-dev.2...v1.1.0-dev.3) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* correct dashboard banner patch smali syntax ([bc42903](https://github.com/sarvottam99/SARVO-Patches/commit/bc4290352963ee0107f9e552fd2b047e4553514b))
+
 ## [1.1.0-dev.2](https://github.com/sarvottam99/SARVO-Patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-10-31)
 
 ### ✨ New Features
