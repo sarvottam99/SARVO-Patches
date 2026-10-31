@@ -6,121 +6,48 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 
-private const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
-private const val APP_NS = "http://schemas.android.com/apk/res-auto"
+private const val DARK_MODE_HELPER = "Lapp/morphe/extension/all/versioncode/MiraieDarkModeHelper;"
 
-private fun miraieAttribute(element: Element, localName: String): String {
-    val attributes = element.attributes
-    for (index in 0 until attributes.length) {
-        val attribute = attributes.item(index)
-        val local = attribute.localName ?: attribute.nodeName.substringAfter(':')
-        if (local == localName) return attribute.nodeValue
+private fun Element.ensureStyleItem(document: Document, name: String, value: String): Boolean {
+    val children = childNodes
+    for (index in 0 until children.length) {
+        val item = children.item(index) as? Element ?: continue
+        if (item.tagName != "item" || item.getAttribute("name") != name) continue
+        if (item.textContent == value) return false
+        item.textContent = value
+        return true
     }
-    return ""
-}
 
-private fun miraieSetAttribute(
-    element: Element,
-    localName: String,
-    value: String,
-    namespace: String,
-    prefix: String
-) {
-    val attributes = element.attributes
-    for (index in 0 until attributes.length) {
-        val attribute = attributes.item(index)
-        val local = attribute.localName ?: attribute.nodeName.substringAfter(':')
-        if (local == localName) {
-            attribute.nodeValue = value
-            return
-        }
-    }
-    element.setAttributeNS(namespace, "$prefix:$localName", value)
-}
-
-private fun miraieIsWhiteColor(value: String): Boolean = value.trim().lowercase() in setOf(
-    "@color/white",
-    "@android:color/white",
-    "@color/cardview_light_background",
-    "#fff",
-    "#ffffff",
-    "#ffffffff"
-)
-
-private fun miraieIsBlackColor(value: String): Boolean = value.trim().lowercase() in setOf(
-    "@color/black",
-    "@android:color/black",
-    "#000",
-    "#000000",
-    "#ff000000",
-    "#212121",
-    "#ff212121",
-    "#2e2e2e",
-    "#ff2e2e2e",
-    "#333333",
-    "#ff333333",
-    "#454545",
-    "#ff454545"
-)
-
-private fun miraieDayNightParent(parent: String): String? = when {
-    parent.contains("Theme.AppCompat.DayNight") ||
-        parent.contains("Theme.MaterialComponents.DayNight") -> parent
-    parent.contains("Theme.AppCompat.Light") ->
-        parent.replace("Theme.AppCompat.Light", "Theme.AppCompat.DayNight")
-    parent.contains("Theme.MaterialComponents.Light.BottomSheetDialog") ->
-        "Theme.MaterialComponents.DayNight.BottomSheetDialog"
-    parent.contains("Theme.MaterialComponents.Light") ->
-        parent.replace("Theme.MaterialComponents.Light", "Theme.MaterialComponents.DayNight")
-    parent.contains("Theme.Design.Light.BottomSheetDialog") ->
-        "Theme.MaterialComponents.DayNight.BottomSheetDialog"
-    parent.contains("Theme.Design.Light.NoActionBar") ->
-        "Theme.MaterialComponents.DayNight.NoActionBar"
-    parent.contains("Theme.Design.Light") ->
-        "Theme.MaterialComponents.DayNight"
-    parent.contains("ThemeOverlay.AppCompat.Light") ->
-        parent.replace("ThemeOverlay.AppCompat.Light", "ThemeOverlay.AppCompat.DayNight")
-    else -> null
-}
-
-private fun miraieReplaceThemeReference(value: String): String {
-    var result = value
-    result = result.replace(
-        "Theme.MaterialComponents.Light.BottomSheetDialog",
-        "Theme.MaterialComponents.DayNight.BottomSheetDialog"
-    )
-    result = result.replace("Theme.MaterialComponents.Light", "Theme.MaterialComponents.DayNight")
-    result = result.replace("Theme.AppCompat.Light", "Theme.AppCompat.DayNight")
-    result = result.replace(
-        "Theme.Design.Light.BottomSheetDialog",
-        "Theme.MaterialComponents.DayNight.BottomSheetDialog"
-    )
-    result = result.replace(
-        "Theme.Design.Light.NoActionBar",
-        "Theme.MaterialComponents.DayNight.NoActionBar"
-    )
-    result = result.replace("Theme.Design.Light", "Theme.MaterialComponents.DayNight")
-    result = result.replace("ThemeOverlay.AppCompat.Light", "ThemeOverlay.AppCompat.DayNight")
-    return result
-}
-
-private fun Element.setStyleItem(document: org.w3c.dom.Document, name: String, value: String) {
-    val items = getElementsByTagName("item")
-    for (index in 0 until items.length) {
-        val item = items.item(index) as? Element ?: continue
-        if (item.getAttribute("name") == name) {
-            item.textContent = value
-            return
-        }
-    }
     document.createElement("item").also {
         it.setAttribute("name", name)
         it.textContent = value
         appendChild(it)
     }
+    return true
+}
+
+private fun Element.isThemeStyle(): Boolean {
+    val name = getAttribute("name").lowercase()
+    val parent = getAttribute("parent").lowercase()
+    if ("theme" in name || "theme" in parent) return true
+
+    val themeAttributes = setOf(
+        "android:windowBackground",
+        "android:colorBackground",
+        "android:windowActionBar",
+        "android:windowNoTitle",
+        "android:statusBarColor"
+    )
+    val children = childNodes
+    for (index in 0 until children.length) {
+        val item = children.item(index) as? Element ?: continue
+        if (item.tagName == "item" && item.getAttribute("name") in themeAttributes) return true
+    }
+    return false
 }
 
 private fun File.isValuesXml(): Boolean {
@@ -129,248 +56,72 @@ private fun File.isValuesXml(): Boolean {
     return directory == "values" || directory.startsWith("values-")
 }
 
-private fun File.isLayoutXml(): Boolean {
-    if (!isFile || !extension.equals("xml", ignoreCase = true)) return false
+private fun File.isNightValuesXml(): Boolean {
     val directory = parentFile?.name ?: return false
-    return directory == "layout" || directory.startsWith("layout-")
+    return directory == "values-night" || directory.startsWith("values-night-")
 }
 
-private val miraieNightColors = linkedMapOf(
-    // Main page, toolbar, cards and common text.
-    "screen_background_color" to "#FF121212",
-    "settings_page_bg" to "#FF121212",
-    "title_bar_color" to "#FF181818",
-    "card_view_color" to "#FF242424",
-    "sp_list_item_bg" to "#FF242424",
-    "newBg" to "#FF121212",
-    "light_grey" to "#FF303030",
-    "dark_grey" to "#FF424242",
-    "feedback_bg" to "#FF1B2230",
-    "primary_text_color" to "#FFF5F5F5",
-    "primary_gray_text_color" to "#FFE0E0E0",
-    "secondary_gray_text_color" to "#FFBDBDBD",
-    "card_heading" to "#FFE0E0E0",
-    "text_view_color" to "#FFE0E0E0",
-    "text_view_subtitle_color" to "#FFBDBDBD",
-    "settings_text_greyish_brown" to "#FFF5F5F5",
-    "title_bar_text_color" to "#FFF5F5F5",
-    "title_bar_icon_color" to "#FFE0E0E0",
-    "edit_text_color" to "#FFF5F5F5",
-    "edit_hint_text_color" to "#FF9E9E9E",
-    "language_text_color" to "#FFF5F5F5",
-    "language_sub_heading_text_color" to "#FFBDBDBD",
-    "divider" to "#FF383838",
-    "gray_color" to "#FFAAAAAA",
-    "devices_count_color" to "#FFBDBDBD",
+private data class Rgba(val alpha: Int, val red: Int, val green: Int, val blue: Int) {
+    val neutral: Boolean get() = maxOf(red, green, blue) - minOf(red, green, blue) <= 32
+    val brightness: Int get() = (red + green + blue) / 3
+}
 
-    // AC controls and device tiles.
-    "ac_fault_bg_color" to "#FF242424",
-    "ac_generic_enabled_color" to "#FFF5F5F5",
-    "ac_generic_text_enabled_color" to "#FFE0E0E0",
-    "ac_generic_text_disabled_color" to "#FF9E9E9E",
-    "ac_room_temp_enabled" to "#FFD0D0D0",
-    "ac_room_temp_label_enabled" to "#FFBDBDBD",
-    "ir_ac_control_text_color" to "#FFBDBDBD",
-    "device_control_background_enabled_on" to "#FF303030",
-    "device_control_icon_disabled" to "#FFBDBDBD",
-    "device_control_text_enabled" to "#FFF5F5F5",
-    "device_control_text_off" to "#FFF5F5F5",
-    "device_control_text_disabled" to "#80FFFFFF",
-    "device_controls_header_text_color_enabled" to "#FFE0E0E0",
-    "device_line_color_enabled" to "#FF4A4A4A",
-    "add_device_bottom_sheet_desc_text_color" to "#FFBDBDBD",
+private fun String.parseLiteralColor(): Rgba? {
+    val value = trim().removePrefix("#")
+    return when (value.length) {
+        3 -> Rgba(255, value[0].digitToInt(16) * 17, value[1].digitToInt(16) * 17, value[2].digitToInt(16) * 17)
+        4 -> Rgba(value[0].digitToInt(16) * 17, value[1].digitToInt(16) * 17, value[2].digitToInt(16) * 17, value[3].digitToInt(16) * 17)
+        6 -> Rgba(255, value.substring(0, 2).toInt(16), value.substring(2, 4).toInt(16), value.substring(4, 6).toInt(16))
+        8 -> Rgba(value.substring(0, 2).toInt(16), value.substring(2, 4).toInt(16), value.substring(4, 6).toInt(16), value.substring(6, 8).toInt(16))
+        else -> null
+    }
+}
 
-    // E-Care and warranty cards.
-    "e_care_amc_info_bg_color" to "#FF242424",
-    "e_care_service_closed_bg" to "#FF242424",
-    "e_warranty_amc_bg_color" to "#FF222A3A",
-    "e_warranty_text_light_dark" to "#FFE0E0E0",
-    "e_warranty_text_light_dark_second" to "#99BDBDBD",
-    "e_warranty_black_screen_color" to "#FF121212",
-    "ecare_amc_base_plan_bg_color" to "#FF222A3A",
-    "ecare_amc_bundle_plan_bg_color" to "#FF29243A",
-    "ecare_text_greyish_color" to "#FFE0E0E0",
+private fun String.universalNightColor(value: String): String? {
+    val key = lowercase()
+    val ignored = listOf(
+        "accent", "button", "icon", "tint", "border", "stroke", "divider", "outline",
+        "ripple", "gradient", "shadow", "progress", "error", "warning", "success",
+        "disabled", "selected", "indicator", "scrim", "overlay"
+    )
+    if (ignored.any(key::contains)) return null
 
-    // Notifications, account and form controls.
-    "nw_no_notification_text_color" to "#FFBDBDBD",
-    "nw_exclusive_time_text_color" to "#80BDBDBD",
-    "nw_home_name_text_color" to "#FFE0E0E0",
-    "nw_time_text_color" to "#FF9E9E9E",
-    "nw_read_notification_bg_color" to "#FF252525",
-    "nw_unread_notification_bg_color" to "#FF1C1C1C",
-    "button_2_background" to "#FF333333",
-    "button_2_text_color" to "#FFF5F5F5",
-    "button_disabled_background" to "#FF333333",
-    "button_disabled_text_color" to "#FF9E9E9E",
-    "choose_language_heading_text_color" to "#FFE0E0E0",
-    "mobileNoLabel" to "#FFBDBDBD",
-    "onboarding_bottom_sheet_search_field_hint_text_color" to "#FF9E9E9E",
-    "onboarding_bottom_sheet_title_text_color" to "#FFF5F5F5",
-    "onboarding_success_desc_text_color" to "#FFE0E0E0",
-    "onboarding_success_title_text_color" to "#FFF5F5F5",
-    "progress_bar_bg_color" to "#FF242424",
-    "progress_bg_color" to "#FF303030",
+    val color = value.parseLiteralColor() ?: return null
+    if (color.alpha < 224 || !color.neutral) return null
 
-    // IR remote, refrigerator and other appliance pages.
-    "ir_primary_text_color" to "#FFE0E0E0",
-    "ir_ac_properties_text_color" to "#FFE0E0E0",
-    "ir_ac_properties_disable_text_color" to "#99BDBDBD",
-    "ir_ac_temp_text_color" to "#FFE0E0E0",
-    "ir_ac_temp_disable_text_color" to "#99BDBDBD",
-    "ir_remote_channel_text_color" to "#FFE0E0E0",
-    "ir_explore_remote_guidance_bg_color" to "#FF202B3A",
-    "ir_shortcut_channel_item_bg_color" to "#FF242424",
-    "light_blue_bg_color" to "#FF202B3A",
-    "refrigerator_bottom_sheet_text" to "#FFE0E0E0",
-    "refrigerator_card_heading" to "#FFE0E0E0",
-    "refrigerator_card_subtitle" to "#FFBDBDBD",
-    "refrigerator_default_text_color" to "#FFE0E0E0",
-    "refrigerator_door_threshold_text" to "#FFE0E0E0",
-    "refrigerator_enabled_text_color" to "#FFE0E0E0",
-    "refrigerator_sub_text_color_disabled" to "#FF9E9E9E",
-    "refrigerator_text_color_disabled" to "#FF9E9E9E",
-    "refrigerator_widget_title_text_color_widget" to "#FFE0E0E0",
-    "scanning_text_color" to "#FFE0E0E0",
+    val surfaceTokens = listOf("background", "surface", "canvas", "panel", "sheet", "card", "window", "screen", "white_bg", "white_background")
+    if (surfaceTokens.any(key::contains) && color.brightness >= 215) {
+        return if (listOf("screen", "window", "background", "canvas").any(key::contains)) {
+            "#FF121212"
+        } else {
+            "#FF1E1E1E"
+        }
+    }
 
-    // Subscription, feedback, service-status and appliance-information surfaces.
-    "subscription_active_bg_color" to "#FF183224",
-    "subscription_cancel_info_bg_color" to "#FF292626",
-    "subscription_cancelled_bg_color" to "#FF292626",
-    "subscription_expired_bg_color" to "#FF352020",
-    "subscription_in_grace_period_bg_color" to "#FF352020",
-    "subscription_tab_unselected_bg_color" to "#FF303030",
-    "subscription_trial_info_bg_color" to "#FF202A3A",
-    "subscription_payment_label_color" to "#FFBDBDBD",
-    "vdp_error_message_background_color" to "#FF3A2222",
-    "vdp_warning_bg" to "#FF3B2D1A",
-    "vdp_circle_progress_percentage_text_color" to "#FFE0E0E0",
-    "vdp_device_disconnected_text_color" to "#FFBDBDBD",
-    "vdp_success_text_color_color" to "#FFE0E0E0",
-    "vdp_warning_text_color" to "#FFBDBDBD",
-    "exo_edit_mode_background_color" to "#FF181818",
-    "ohm_bot_item_bg_color" to "#FF242424",
-    "tws_image_bg_strip_color" to "#FF202B3A",
-    "tws_info_title_text_color" to "#FFE0E0E0",
-    "tws_linked_switch_layout_space_name_text_color" to "#FFE0E0E0",
-    "tws_linked_switch_layout_switch_name_text_color" to "#FFE0E0E0",
-    "vetaar_light_bg1" to "#FF303030",
-    "web_title_icon_color" to "#FFBDBDBD",
-    "wifi_network_bg_color_fw_popup" to "#FF242424",
-    "wm_default_text_color" to "#FFE0E0E0",
-    "wm_detail_desc_text_color" to "#FFBDBDBD",
-    "wm_error_code_title_text_color" to "#FFE0E0E0",
-    "wm_error_critical_bg" to "#FF3A2222",
-    "wm_error_non_warning_bg" to "#FF3B2D1A",
-    "wm_pg_desc_bg" to "#FF242424",
-    "wm_perform_remedy_text_color" to "#FFE0E0E0",
-    "wm_sensor_level_text_view" to "#FFBDBDBD",
-    "yogifi_yoga_perform_day_view_bg_color" to "#FF242424"
-)
+    val textTokens = listOf("text", "foreground", "title", "subtitle", "label", "hint", "caption")
+    if (textTokens.any(key::contains) && color.brightness <= 95) {
+        return if ("hint" in key || "secondary" in key || "subtitle" in key) {
+            "#FFB0B0B0"
+        } else {
+            "#FFE8EAED"
+        }
+    }
 
-private val miraiePageLayouts = mapOf(
-    "fragment_homescreen" to "@color/screen_background_color",
-    "common_recycler" to "@color/screen_background_color",
-    "content_dashboard_panel" to "@color/screen_background_color",
-    "content_energy_comsumption" to "@color/screen_background_color",
-    "activity_homescreen" to "@color/screen_background_color",
-    "activity_ecare_order_list" to "@color/screen_background_color",
-    "activity_ecare_order_details" to "@color/screen_background_color",
-    "fragment_ecare_amc_main_layout" to "@color/screen_background_color",
-    "fragment_ecare_service" to "@color/screen_background_color",
-    "fragment_ecare_warranty_details" to "@color/screen_background_color",
-    "activity_user_account" to "@color/screen_background_color",
-    "fragment_useraccount_miraie" to "@color/screen_background_color",
-    "fragment_others_account_list" to "@color/screen_background_color",
-    "activity_ac_manager" to "@color/screen_background_color",
-    "activity_ac_details" to "@color/screen_background_color",
-    "activity_n_w" to "@color/screen_background_color",
-    "fragment_n_w_exclusive_notification_detailed_b_s" to "@color/screen_background_color",
-    "activity_my_subscriptions" to "@color/screen_background_color",
-    "activity_settings_layout" to "@color/screen_background_color",
-    "activity_delete_account" to "@color/screen_background_color",
-    "fragment_delete_accout" to "@color/screen_background_color",
-    "activity_customer_care" to "@color/screen_background_color",
-    "activity_customer_care_nepal" to "@color/screen_background_color",
-    "activity_customer_care_srilanka" to "@color/screen_background_color",
-    "fragment_license" to "@color/screen_background_color",
-    "activity_service_request_history" to "@color/screen_background_color",
-    "fragment_pana_anchor_history" to "@color/screen_background_color",
-    "fragment_change_password" to "@color/screen_background_color",
-    "layout_delete_account_tc_popup" to "@drawable/round_corner_dialog_bg",
-    "layout_rooms_bottom_sheet" to "@drawable/bottom_sheet_gradient"
-)
+    return null
+}
 
-private val miraieCardLayouts = setOf(
-    "content_settings_list",
-    "content_pm_airquality_widget",
-    "content_user_account_detail",
-    "content_user_account_mobile_number_layout",
-    "content_user_home_location",
-    "ecare_product_card_item",
-    "ecare_details_warranty_recycler_items_layout",
-    "ecare_my_orders_inner_items",
-    "ecare_my_orders_inner_recycler_items",
-    "ecare_amc_plans_inner_items_layout",
-    "ecare_orders_bottom_sheet_inner_items",
-    "nw_notification_item_view",
-    "nw_exclusive_notification_item_view",
-    "nw_exclusive_notification_list_item_view"
-)
-
-private val miraieTabLayouts = setOf(
-    "content_energy_comsumption",
-    "activity_user_account",
-    "activity_ecare_order_list",
-    "activity_ecare_order_details",
-    "fragment_ecare_amc_main_layout",
-    "fragment_ecare_service",
-    "fragment_ecare_warranty_details",
-    "activity_service_request_history"
-)
-
-private val miraieNightDrawables = linkedMapOf(
-    "e_care_white_bg" to "@color/card_view_color",
-    "rounded_white_bg" to "@color/card_view_color",
-    "bottom_sheet_white_bg" to "@color/card_view_color",
-    "nw_exclusive_notification_item_white_bg_drawable" to "@color/card_view_color",
-    "round_corner_20dp_white_bg" to "@color/card_view_color",
-    "round_corner_solid_white_8dp" to "@color/card_view_color",
-    "round_corner_white_12dp" to "@color/card_view_color",
-    "rounded_corners_white" to "@color/card_view_color",
-    "white_rectangular_bg_with_radius_12" to "@color/card_view_color",
-    "white_radius" to "@color/card_view_color",
-    "white_round_bg_7_in_1" to "@color/card_view_color",
-    "ecare_bottom_sheet_orders_bg" to "@color/card_view_color",
-    "ecare_popup_menu_bg" to "@color/card_view_color",
-    "ecare_tab_container" to "@color/light_grey",
-    "ecare_service_details_bg" to "@color/card_view_color",
-    "ecare_amc_plans_bg" to "@color/card_view_color",
-    "ecare_base_plans_bg" to "@color/card_view_color",
-    "ecare_bundle_plans_bg" to "@color/card_view_color",
-    "ecare_sub_description_bg" to "@color/light_grey",
-    "common_success_alert_blue_edge_light_blue_bg" to "@color/light_grey",
-    "miraie_alert_blue_edge_light_blue_bg" to "@color/light_grey",
-    "subscription_card_bg" to "@color/card_view_color",
-    "nw_tab_container_bg_drawable" to "@color/card_view_color",
-    "nw_tab_selected_drawable" to "@color/light_grey",
-    "design_snackbar_background" to "@color/card_view_color",
-    "card_background_shape" to "@color/card_view_color",
-    "card_background_shape_room" to "@color/card_view_color",
-    "bg_card_rect_primary_light" to "@color/card_view_color",
-    "round_corner_dialog_bg" to "@color/card_view_color",
-    "white_background_circle" to "@color/card_view_color",
-    "white_background_thumb" to "@color/card_view_color",
-    "edit_text_latest_white_bg" to "@color/card_view_color"
-)
-
-private val miraieNightGradientDrawables = mapOf(
-    "bottom_sheet_gradient" to ("#FF303030" to "#FF1E1E1E"),
-    "bottom_sheet_gradient_timer" to ("#FF303030" to "#FF1E1E1E")
-)
-
-private val miraieDayNightResourcePatch = resourcePatch(
-    name = "MirAIe DayNight theme",
-    description = "Converts MirAIe to a system-following DayNight theme and supplies dark colors for its native screens, cards, sheets and controls.",
+/**
+ * Resource-only techniques adapted from the collection's Amazon and Google
+ * Photos dark-mode patches:
+ * - enable Android's built-in Force Dark on theme styles, without relying on
+ *   a particular values XML filename or a guessed application style name;
+ * - derive night-only neutral surface/text colors from resource names and
+ *   literal color values, while leaving brand, state, icon and control colors
+ *   alone.
+ */
+private val miraieUniversalDarkResourcePatch = resourcePatch(
+    name = "MirAIe universal dark resources",
+    description = "Enables Android Force Dark and generates conservative night colors from neutral surface and text resources.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_MIRAIE)
@@ -381,343 +132,98 @@ private val miraieDayNightResourcePatch = resourcePatch(
             throw PatchException("Decoded MirAIe res directory was not found.")
         }
 
-        // The original 01.4.32 AppTheme inherits Theme.AppCompat.Light.DarkActionBar.
-        // Convert every AppTheme qualifier to AppCompat DayNight and explicitly
-        // disable force-dark so the result uses a real theme, not view inversion.
-        var appThemeVariants = 0
-        var convertedDialogs = 0
-        var convertedBottomSheets = 0
-
-        resDirectory.walkTopDown()
-            .filter { it.isValuesXml() && it.name.contains("style", ignoreCase = true) }
-            .forEach { file ->
-                val source = file.readText()
-                if (!source.contains("<style")) return@forEach
-                val resourcePath = "res/${file.relativeTo(resDirectory).invariantSeparatorsPath}"
-                document(resourcePath).use { xml ->
-                    val styles = xml.getElementsByTagName("style")
-                    for (index in 0 until styles.length) {
-                        val style = styles.item(index) as? Element ?: continue
-                        val name = style.getAttribute("name")
-                        val parent = style.getAttribute("parent")
-
-                        when (name) {
-                            "AppTheme" -> {
-                                val dayNightParent = miraieDayNightParent(parent)
-                                    ?: throw PatchException("Unexpected MirAIe AppTheme parent '$parent'.")
-                                style.setAttribute("parent", dayNightParent)
-                                style.setStyleItem(xml, "android:forceDarkAllowed", "false")
-                                style.setStyleItem(xml, "android:windowBackground", "@color/screen_background_color")
-                                style.setStyleItem(xml, "android:colorBackground", "@color/screen_background_color")
-                                style.setStyleItem(xml, "android:statusBarColor", "@color/title_bar_color")
-                                style.setStyleItem(xml, "android:navigationBarColor", "@color/screen_background_color")
-                                appThemeVariants++
-                            }
-                            "FullScreenCustomErrorAlert",
-                            "MarginScreenCustomAlert",
-                            "MarginScreenCustomSuccessAlert" -> {
-                                val dayNightParent = miraieDayNightParent(parent)
-                                    ?: throw PatchException("Unexpected parent '$parent' for MirAIe dialog style '$name'.")
-                                style.setAttribute("parent", dayNightParent)
-                                style.setStyleItem(xml, "android:forceDarkAllowed", "false")
-                                convertedDialogs++
-                            }
-                            "AppBottomSheetDialogTheme",
-                            "AppBottomSheetDialogTheme2" -> {
-                                val dayNightParent = miraieDayNightParent(parent)
-                                    ?: throw PatchException("Unexpected parent '$parent' for MirAIe bottom-sheet theme '$name'.")
-                                style.setAttribute("parent", dayNightParent)
-                                style.setStyleItem(xml, "android:forceDarkAllowed", "false")
-                                convertedBottomSheets++
-                            }
-                        }
-                    }
-                }
-            }
-
-        if (appThemeVariants == 0) {
-            throw PatchException("MirAIe AppTheme was not found in decoded values resources.")
+        val valuesFiles = resDirectory.walkTopDown().filter(File::isValuesXml).toList()
+        if (valuesFiles.isEmpty()) {
+            throw PatchException("No decoded values XML files were found.")
         }
 
-        // Convert explicit light theme overlays embedded in layouts, while
-        // preserving unrelated custom themes and every WebView's navigation.
-        fun patchLayout(path: String, rootBackground: String, patchTabs: Boolean) {
+        var themeStyles = 0
+        var forceDarkItems = 0
+        var nightColorsUpdated = 0
+        val existingNightColorNames = mutableSetOf<String>()
+        val generatedNightColors = linkedMapOf<String, String>()
+
+        valuesFiles.forEach { file ->
+            val source = file.readText()
+            if (!source.contains("<style") && !source.contains("<color")) return@forEach
+
+            val path = "res/" + file.relativeTo(resDirectory).invariantSeparatorsPath
+            val isNightFile = file.isNightValuesXml()
             document(path).use { xml ->
-                val root = xml.documentElement
-                miraieSetAttribute(root, "background", rootBackground, ANDROID_NS, "android")
-
-                val elements = xml.getElementsByTagName("*")
-                for (index in 0 until elements.length) {
-                    val element = elements.item(index) as? Element ?: continue
-                    val tag = element.tagName
-
-                    val background = miraieAttribute(element, "background")
-                    if (miraieIsWhiteColor(background)) {
-                        miraieSetAttribute(
-                            element, "background", "@color/card_view_color", ANDROID_NS, "android"
-                        )
+                val styles = xml.getElementsByTagName("style")
+                for (index in 0 until styles.length) {
+                    val style = styles.item(index) as? Element ?: continue
+                    if (!style.isThemeStyle()) continue
+                    themeStyles++
+                    if (style.ensureStyleItem(xml, "android:forceDarkAllowed", "true")) {
+                        forceDarkItems++
                     }
+                }
 
-                    val cardBackground = miraieAttribute(element, "cardBackgroundColor")
-                    if (tag.contains("CardView", ignoreCase = true) &&
-                        (cardBackground.isEmpty() || miraieIsWhiteColor(cardBackground))
-                    ) {
-                        miraieSetAttribute(
-                            element, "cardBackgroundColor", "@color/card_view_color", APP_NS, "app"
-                        )
-                    }
+                val colors = xml.getElementsByTagName("color")
+                for (index in 0 until colors.length) {
+                    val color = colors.item(index) as? Element ?: continue
+                    val name = color.getAttribute("name")
+                    if (isNightFile) existingNightColorNames.add(name)
+                    val replacement = name.universalNightColor(color.textContent) ?: continue
 
-                    if (tag.endsWith("TextView") || tag == "TextView") {
-                        val textColor = miraieAttribute(element, "textColor")
-                        if (miraieIsBlackColor(textColor)) {
-                            miraieSetAttribute(
-                                element, "textColor", "@color/primary_text_color", ANDROID_NS, "android"
-                            )
+                    if (isNightFile) {
+                        if (color.textContent.trim() != replacement) {
+                            color.textContent = replacement
+                            nightColorsUpdated++
                         }
-                    }
-
-                    if (patchTabs && tag.contains("TabLayout", ignoreCase = true)) {
-                        miraieSetAttribute(
-                            element, "tabTextColor", "@color/primary_text_color", APP_NS, "app"
-                        )
-                        miraieSetAttribute(
-                            element, "tabSelectedTextColor", "@color/primary_text_color", APP_NS, "app"
-                        )
-                    }
-
-                    // A few widgets carry a fixed Light theme overlay in their
-                    // XML; move those overlays to the matching DayNight variant.
-                    val attributes = element.attributes
-                    for (attributeIndex in 0 until attributes.length) {
-                        val attribute = attributes.item(attributeIndex)
-                        val local = attribute.localName ?: attribute.nodeName.substringAfter(':')
-                        if (local != "theme" && local != "popupTheme") continue
-                        val replacement = miraieReplaceThemeReference(attribute.nodeValue)
-                        if (replacement != attribute.nodeValue) attribute.nodeValue = replacement
+                    } else {
+                        generatedNightColors.putIfAbsent(name, replacement)
                     }
                 }
             }
         }
 
-        val requiredLayoutNames = miraiePageLayouts.keys + miraieCardLayouts
-        var patchedLayouts = 0
-        val foundLayoutNames = mutableSetOf<String>()
-        val layoutFiles = resDirectory.walkTopDown()
-            .filter { it.isLayoutXml() && it.nameWithoutExtension in requiredLayoutNames }
-            .toList()
-
-        layoutFiles.forEach { file ->
-            val name = file.nameWithoutExtension
-            val rootBackground = miraiePageLayouts[name] ?: "@color/card_view_color"
-            val path = "res/${file.relativeTo(resDirectory).invariantSeparatorsPath}"
-            patchLayout(path, rootBackground, name in miraieTabLayouts)
-            foundLayoutNames.add(name)
-            patchedLayouts++
+        if (themeStyles == 0) {
+            throw PatchException("No application theme styles were found in decoded values XML resources.")
         }
 
-        val missingCoreLayouts = setOf(
-            "fragment_homescreen",
-            "activity_homescreen",
-            "content_dashboard_panel",
-            "content_energy_comsumption"
-        ) - foundLayoutNames
-        if (missingCoreLayouts.isNotEmpty()) {
-            throw PatchException("MirAIe core layouts were not found: ${missingCoreLayouts.joinToString()}")
-        }
-
-        // The home device list has its own RecyclerView canvas.
-        fun patchMatchingLayout(name: String, edit: (org.w3c.dom.Document) -> Unit) {
-            val matches = resDirectory.walkTopDown()
-                .filter { it.isLayoutXml() && it.nameWithoutExtension == name }
-                .toList()
-            matches.forEach { file ->
-                val path = "res/${file.relativeTo(resDirectory).invariantSeparatorsPath}"
-                document(path).use { edit(it) }
-            }
-        }
-
-        patchMatchingLayout("common_recycler") { xml ->
-            val elements = xml.getElementsByTagName("*")
-            for (index in 0 until elements.length) {
-                val element = elements.item(index) as? Element ?: continue
-                if (miraieAttribute(element, "id").substringAfterLast('/') == "recyclerView") {
-                    miraieSetAttribute(
-                        element, "background", "@color/screen_background_color", ANDROID_NS, "android"
-                    )
+        // Never create duplicate values-night entries where MirAIe already has
+        // an explicit night-qualified resource for that color.
+        existingNightColorNames.forEach(generatedNightColors::remove)
+        if (generatedNightColors.isNotEmpty()) {
+            val nightColorsFile = get("res/values-night/miraie_universal_dark_colors.xml", false)
+            nightColorsFile.parentFile?.mkdirs()
+            val palette = buildString {
+                append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n")
+                generatedNightColors.forEach { (name, value) ->
+                    append("    <color name=\"").append(name).append("\">")
+                        .append(value).append("</color>\n")
                 }
+                append("</resources>\n")
             }
+            nightColorsFile.writeText(palette)
         }
-
-        // The customer-care footer used the white button text resource as a
-        // background. Replace only that specific erroneous background use.
-        listOf("activity_customer_care", "activity_customer_care_nepal", "activity_customer_care_srilanka")
-            .forEach { name ->
-                patchMatchingLayout(name) { xml ->
-                    val elements = xml.getElementsByTagName("*")
-                    for (index in 0 until elements.length) {
-                        val element = elements.item(index) as? Element ?: continue
-                        if (miraieAttribute(element, "background") == "@color/button_1_text_color") {
-                            miraieSetAttribute(
-                                element, "background", "@color/card_view_color", ANDROID_NS, "android"
-                            )
-                        }
-                    }
-                }
-            }
-
-        // Keep app-owned legal WebViews dark behind their content, without
-        // injecting CSS or touching the Panasonic Store/Alexa login WebViews.
-        patchMatchingLayout("fragment_license") { xml ->
-            val elements = xml.getElementsByTagName("*")
-            for (index in 0 until elements.length) {
-                val element = elements.item(index) as? Element ?: continue
-                if (miraieAttribute(element, "id").substringAfterLast('/') == "wvPage1") {
-                    miraieSetAttribute(
-                        element, "background", "@color/screen_background_color", ANDROID_NS, "android"
-                    )
-                }
-            }
-        }
-
-        patchMatchingLayout("layout_rooms_bottom_sheet") { xml ->
-            val elements = xml.getElementsByTagName("*")
-            for (index in 0 until elements.length) {
-                val element = elements.item(index) as? Element ?: continue
-                if (miraieAttribute(element, "id").substringAfterLast('/') == "rooms_bs_close") {
-                    miraieSetAttribute(
-                        element, "tint", "@color/primary_gray_text_color", ANDROID_NS, "android"
-                    )
-                }
-            }
-        }
-
-        patchMatchingLayout("fragment_pana_anchor_history") { xml ->
-            val elements = xml.getElementsByTagName("*")
-            for (index in 0 until elements.length) {
-                val element = elements.item(index) as? Element ?: continue
-                val tag = element.tagName
-                if (tag.contains("SwipeRefreshLayout") || tag.contains("RecyclerView")) {
-                    miraieSetAttribute(
-                        element, "background", "@color/screen_background_color", ANDROID_NS, "android"
-                    )
-                }
-            }
-        }
-
-        patchMatchingLayout("fragment_change_password") { xml ->
-            val elements = xml.getElementsByTagName("*")
-            for (index in 0 until elements.length) {
-                val element = elements.item(index) as? Element ?: continue
-                val tag = element.tagName
-                if (tag.contains("TextInputLayout")) {
-                    miraieSetAttribute(
-                        element, "hintTextAppearance", "@style/TextViewRegular14spPrimaryGrey", APP_NS, "app"
-                    )
-                    miraieSetAttribute(element, "boxBackgroundMode", "1", APP_NS, "app")
-                    miraieSetAttribute(
-                        element, "boxBackgroundColor", "@color/card_view_color", APP_NS, "app"
-                    )
-                    miraieSetAttribute(
-                        element, "boxStrokeColor", "@color/primary_gray_text_color", APP_NS, "app"
-                    )
-                    miraieSetAttribute(
-                        element, "hintTextColor", "@color/edit_hint_text_color", APP_NS, "app"
-                    )
-                }
-                if (tag.endsWith("EditText")) {
-                    miraieSetAttribute(
-                        element, "textColor", "@color/primary_text_color", ANDROID_NS, "android"
-                    )
-                    miraieSetAttribute(
-                        element, "textColorHint", "@color/edit_hint_text_color", ANDROID_NS, "android"
-                    )
-                    miraieSetAttribute(
-                        element, "backgroundTint", "@color/primary_gray_text_color", ANDROID_NS, "android"
-                    )
-                }
-            }
-        }
-
-        // Preserve each original drawable's shape, corner radii, strokes and
-        // insets. Change its surface fill and (where applicable) gradient stops
-        // only in the night-qualified copy.
-        var nightDrawablesWritten = 0
-        val solidColorPattern = Regex(
-            "(<solid\\b[^>]*\\bandroid:color\\s*=\\s*\")([^\"]*)(\")",
-            RegexOption.IGNORE_CASE
-        )
-        val gradientTagPattern = Regex("<gradient\\b[^>]*>", RegexOption.IGNORE_CASE)
-
-        fun transformShapeDrawable(original: String, solidFill: String?, gradientFills: Pair<String, String>?): String {
-            var transformed = original
-            if (solidFill != null) {
-                transformed = solidColorPattern.replace(transformed) { match ->
-                    match.groupValues[1] + solidFill + match.groupValues[3]
-                }
-            }
-            if (gradientFills != null) {
-                transformed = gradientTagPattern.replace(transformed) { match ->
-                    var tag = match.value
-                    val startPattern = Regex("(android:startColor\\s*=\\s*\")[^\"]*(\")", RegexOption.IGNORE_CASE)
-                    val endPattern = Regex("(android:endColor\\s*=\\s*\")[^\"]*(\")", RegexOption.IGNORE_CASE)
-                    val centerPattern = Regex("(android:centerColor\\s*=\\s*\")[^\"]*(\")", RegexOption.IGNORE_CASE)
-                    tag = startPattern.replace(tag) { it.groupValues[1] + gradientFills.first + it.groupValues[2] }
-                    tag = endPattern.replace(tag) { it.groupValues[1] + gradientFills.second + it.groupValues[2] }
-                    tag = centerPattern.replace(tag) { it.groupValues[1] + gradientFills.first + it.groupValues[2] }
-                    tag
-                }
-            }
-            return transformed
-        }
-
-        val drawableNames = miraieNightDrawables.keys + miraieNightGradientDrawables.keys
-        drawableNames.forEach { name ->
-            val source = get("res/drawable/$name.xml", false)
-            if (!source.isFile) return@forEach
-            val original = source.readText()
-            val solidFill = miraieNightDrawables[name]
-            val gradientFills = miraieNightGradientDrawables[name]
-            val hasSolid = solidFill != null && solidColorPattern.containsMatchIn(original)
-            val hasGradient = gradientFills != null && gradientTagPattern.containsMatchIn(original)
-            if (!hasSolid && !hasGradient) return@forEach
-            val transformed = transformShapeDrawable(
-                original,
-                if (hasSolid) solidFill else null,
-                if (hasGradient) gradientFills else null
-            )
-            val target = get("res/drawable-night/$name.xml", false)
-            target.parentFile?.mkdirs()
-            target.writeText(transformed)
-            nightDrawablesWritten++
-        }
-
-        if (nightDrawablesWritten < 10) {
-            throw PatchException("Only $nightDrawablesWritten MirAIe night drawable variants were generated; expected at least 10.")
-        }
-
-        // All entries are app-owned color resources verified in the original
-        // MirAIe 01.4.32 resource table. They are selected only in night mode.
-        // Use a dedicated file so any existing values-night resources remain intact.
-        val nightPalette = get("res/values-night/miraie_daynight_colors.xml", false)
-        nightPalette.parentFile?.mkdirs()
-        val paletteXml = buildString {
-            append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n")
-            miraieNightColors.forEach { (name, value) ->
-                append("    <color name=\"").append(name).append("\">")
-                    .append(value).append("</color>\n")
-            }
-            append("</resources>\n")
-        }
-        nightPalette.writeText(paletteXml)
 
         println(
-            "MirAIe DayNight: updated $appThemeVariants AppTheme variant(s), " +
-                "converted $convertedDialogs dialog style(s), $convertedBottomSheets bottom-sheet theme(s), " +
-                "patched $patchedLayouts layout(s), wrote $nightDrawablesWritten drawable(s), " +
-                "and added ${miraieNightColors.size} night color(s)."
+            "MirAIe dark resources: enabled Force Dark on $themeStyles theme style(s) " +
+                "($forceDarkItems item(s) changed), updated $nightColorsUpdated existing night color(s), " +
+                "and generated " +
+                generatedNightColors.size.toString() + " night color override(s)."
         )
     }
 }
+
+private val MIRAIE_APPLICATION_ON_CREATE = Fingerprint(
+    definingClass = "Lcom/panasonic/in/miraie/MiraieApplication;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = emptyList()
+)
+
+// The legal/terms WebView is deliberately targeted by its own client. Do not
+// touch PgoWebActivity (Panasonic Store) or AlexaLoginWebViewActivity.
+private val MIRAIE_TERMS_WEBVIEW_ON_PAGE_FINISHED = Fingerprint(
+    definingClass = "Lcom/panasonic/in/miraie/utils/TcAndPpWebClient;",
+    name = "onPageFinished",
+    returnType = "V",
+    parameters = listOf("Landroid/webkit/WebView;", "Ljava/lang/String;")
+)
 
 private val ENERGY_CHART_PREPARE_BAR_CHART = Fingerprint(
     definingClass = "Lcom/panasonic/in/miraie/widgets/EnergyConsumption;",
@@ -726,18 +232,29 @@ private val ENERGY_CHART_PREPARE_BAR_CHART = Fingerprint(
     parameters = listOf("Lcom/panasonic/in/miraie/widgets/EnergyConsumption\$Type;")
 )
 
-/* MPAndroidChart draws its labels and axes itself. Keep its colors synchronized
- * with the current system uiMode because Android theme colors do not recolor it. */
 @Suppress("unused")
 val miraieDarkModePatch = bytecodePatch(
     name = "Dark mode",
-    description = "Adds a proper system-following DayNight theme and dark palette for MirAIe, including readable energy-chart labels.",
+    description = "Forces MirAIe into night mode, enables Android Force Dark, darkens its legal WebView, and keeps energy-chart labels readable.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_MIRAIE)
-    dependsOn(miraieDayNightResourcePatch)
+    dependsOn(miraieUniversalDarkResourcePatch)
+    extendWith("extensions/all/versioncode/change-version-code.mpe")
 
     execute {
+        MIRAIE_APPLICATION_ON_CREATE.method.addInstructions(
+            0,
+            "invoke-static {p0}, $DARK_MODE_HELPER->forceDarkTheme(Landroid/content/Context;)V"
+        )
+
+        MIRAIE_TERMS_WEBVIEW_ON_PAGE_FINISHED.method.addInstructions(
+            0,
+            "invoke-static {p1}, $DARK_MODE_HELPER->enableWebViewDarkMode(Landroid/webkit/WebView;)V"
+        )
+
+        // MPAndroidChart draws its own text and axes, so Android Force Dark
+        // cannot recolor these. Read the effective uiMode and set chart colors.
         ENERGY_CHART_PREPARE_BAR_CHART.method.addInstructions(
             0,
             """
