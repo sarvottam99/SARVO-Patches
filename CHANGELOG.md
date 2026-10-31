@@ -1,3 +1,9 @@
+## [1.0.0-dev.14](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* edit existing MirAIe dark colors in place ([cf37c15](https://github.com/sarvottam99/Miraie-Patches/commit/cf37c153f651dbf53db4693485ccd365cbdd5738))
+
 ## [1.0.0-dev.13](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2026-10-31)
 
 ### 🐛 Bug Fixes
