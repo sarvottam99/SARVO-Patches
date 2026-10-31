@@ -6,7 +6,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.resource.ResourceType
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -54,11 +53,6 @@ private fun String.isValuesXmlPath(): Boolean {
     if (!endsWith(".xml", ignoreCase = true)) return false
     val directory = substringBeforeLast('/').substringAfterLast('/')
     return directory == "values" || directory.startsWith("values-")
-}
-
-private fun String.isNightValuesXmlPath(): Boolean {
-    val directory = substringBeforeLast('/').substringAfterLast('/')
-    return directory == "values-night" || directory.startsWith("values-night-")
 }
 
 private data class Rgba(val alpha: Int, val red: Int, val green: Int, val blue: Int) {
@@ -115,13 +109,16 @@ private fun String.universalNightColor(value: String): String? {
  * Photos dark-mode patches:
  * - enable Android's built-in Force Dark on theme styles, without relying on
  *   a particular values XML filename or a guessed application style name;
- * - derive night-only neutral surface/text colors from resource names and
- *   literal color values, while leaving brand, state, icon and control colors
- *   alone.
+ * - recolor existing neutral surface/text resources in their original values
+ *   files, while leaving brand, state, icon and control colors alone.
+ *
+ * IMPORTANT: this patch deliberately does not synthesize values-night entries.
+ * ARSCLib can reject a new qualifier entry even when the name exists in the
+ * default resource table. Existing resource values are edited in place instead.
  */
 private val miraieUniversalDarkResourcePatch = resourcePatch(
     name = "MirAIe universal dark resources",
-    description = "Enables Android Force Dark and generates conservative night colors from neutral surface and text resources.",
+    description = "Enables Android Force Dark and safely recolors existing neutral surface and text resources without adding resource-table entries.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_MIRAIE)
@@ -142,18 +139,22 @@ private val miraieUniversalDarkResourcePatch = resourcePatch(
             )
         }
 
+        // Remove the file emitted by earlier revisions of this patch. It is not
+        // part of the original APK and must never be passed to ARSCLib again.
+        // Deleting a missing path is a no-op in Morphe Patcher 2.1.0.
+        delete("res/values-night/miraie_universal_dark_colors.xml")
+
         var themeStyles = 0
         var forceDarkItems = 0
-        var nightColorsUpdated = 0
-        var skippedUnregisteredColors = 0
-        val existingNightColorNames = mutableSetOf<String>()
-        val generatedNightColors = linkedMapOf<String, String>()
+        var colorsUpdated = 0
+        var colorCandidates = 0
 
         valuesPaths.forEach { path ->
             val source = get(path).readText()
-            if (!source.contains("<style") && !source.contains("<color")) return@forEach
+            if (!source.contains("<style") && !source.contains("<color") && !source.contains("type=\"color\"")) {
+                return@forEach
+            }
 
-            val isNightFile = path.isNightValuesXmlPath()
             document(path).use { xml ->
                 val styles = xml.getElementsByTagName("style")
                 for (index in 0 until styles.length) {
@@ -165,33 +166,32 @@ private val miraieUniversalDarkResourcePatch = resourcePatch(
                     }
                 }
 
+                // These elements already exist in this exact resource
+                // configuration. Editing their values is safe: no new color
+                // name, type entry, or values-night qualifier is introduced.
                 val colors = xml.getElementsByTagName("color")
                 for (index in 0 until colors.length) {
                     val color = colors.item(index) as? Element ?: continue
                     val name = color.getAttribute("name")
                     val replacement = name.universalNightColor(color.textContent) ?: continue
-
-                    // A value XML element is not sufficient proof that the APK has a
-                    // resource-table entry of type COLOR with this name. In particular,
-                    // some MirAIe/embedded-library names occur in XML metadata or under
-                    // another resource type. Adding those as <color> entries makes
-                    // Arsclib fail with "Undefined entry name" while encoding values-night.
-                    // ResourceIds reads the original compiled ARSC table and is available
-                    // before resource decoding, so only override real color resources.
-                    if (!resourceIds.has(ResourceType.COLOR, name)) {
-                        skippedUnregisteredColors++
-                        continue
+                    colorCandidates++
+                    if (color.textContent.trim() != replacement) {
+                        color.textContent = replacement
+                        colorsUpdated++
                     }
+                }
 
-                    if (isNightFile) existingNightColorNames.add(name)
-
-                    if (isNightFile) {
-                        if (color.textContent.trim() != replacement) {
-                            color.textContent = replacement
-                            nightColorsUpdated++
-                        }
-                    } else {
-                        generatedNightColors.putIfAbsent(name, replacement)
+                // Also support the equivalent <item type="color" name="..."> form.
+                val typedItems = xml.getElementsByTagName("item")
+                for (index in 0 until typedItems.length) {
+                    val item = typedItems.item(index) as? Element ?: continue
+                    if (item.getAttribute("type") != "color") continue
+                    val name = item.getAttribute("name")
+                    val replacement = name.universalNightColor(item.textContent) ?: continue
+                    colorCandidates++
+                    if (item.textContent.trim() != replacement) {
+                        item.textContent = replacement
+                        colorsUpdated++
                     }
                 }
             }
@@ -201,28 +201,10 @@ private val miraieUniversalDarkResourcePatch = resourcePatch(
             throw PatchException("No application theme styles were found in decoded values XML resources.")
         }
 
-        // Never create duplicate values-night entries where MirAIe already has
-        // an explicit night-qualified resource for that color.
-        existingNightColorNames.forEach(generatedNightColors::remove)
-        if (generatedNightColors.isNotEmpty()) {
-            val nightColorsFile = get("res/values-night/miraie_universal_dark_colors.xml", false)
-            nightColorsFile.parentFile?.mkdirs()
-            val palette = buildString {
-                append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n")
-                generatedNightColors.forEach { (name, value) ->
-                    append("    <color name=\"").append(name).append("\">")
-                        .append(value).append("</color>\n")
-                }
-                append("</resources>\n")
-            }
-            nightColorsFile.writeText(palette)
-        }
-
         println(
             "MirAIe dark resources: enabled Force Dark on $themeStyles theme style(s) " +
-                "($forceDarkItems item(s) changed), updated $nightColorsUpdated existing night color(s), " +
-                "generated " + generatedNightColors.size.toString() + " night color override(s), " +
-                "and skipped $skippedUnregisteredColors candidate(s) without a compiled COLOR resource ID."
+                "($forceDarkItems item(s) changed), evaluated $colorCandidates existing neutral color(s), " +
+                "and recolored $colorsUpdated existing value(s) in place. No new resource entries were created."
         )
     }
 }
