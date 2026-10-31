@@ -1,3 +1,11 @@
+## [1.1.0](https://github.com/sarvottam99/SARVO-Patches/compare/v1.0.0...v1.1.0) (2026-10-31)
+
+### ✨ New Features
+
+* add optional Lifestyle tab hiding patch ([d5ac1da](https://github.com/sarvottam99/SARVO-Patches/commit/d5ac1da96985e3b38c1ab77a9a794dc676ba371a))
+* release SARVO Patches v1.0.0 ([acd46ec](https://github.com/sarvottam99/SARVO-Patches/commit/acd46ec2d268acb803fac87c95ff4f12e30fdc69))
+* remove dashboard promotional banner ([7504d8d](https://github.com/sarvottam99/SARVO-Patches/commit/7504d8d51de384815673553e5e47185bf2aa203e))
+
 ## [1.1.0-dev.1](https://github.com/sarvottam99/SARVO-Patches/compare/v1.0.0...v1.1.0-dev.1) (2026-10-31)
 
 ### ✨ New Features

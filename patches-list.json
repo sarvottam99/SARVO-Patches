@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.1.0-dev.1",
+  "version": "1.1.0",
   "patches": [
     {
       "name": "Change installer source",
@@ -102,7 +102,34 @@
     {
       "name": "Hide Lifestyle tab",
       "description": "Hides only the Lifestyle tab from MirAIe's bottom navigation. Other tabs, icons and their order remain unchanged.",
-      "default": false,
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.panasonic.in.miraie",
+          "name": "MirAIe",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "01.4.32",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove dashboard promotional banner",
+      "description": "Removes the dashboard promotional carousel before it initializes.",
+      "default": true,
       "category": null,
       "compatiblePackages": [
         {
