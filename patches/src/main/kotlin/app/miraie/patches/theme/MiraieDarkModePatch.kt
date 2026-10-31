@@ -8,7 +8,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-import java.io.File
 
 private const val DARK_MODE_HELPER = "Lapp/morphe/extension/all/versioncode/MiraieDarkModeHelper;"
 
@@ -50,14 +49,14 @@ private fun Element.isThemeStyle(): Boolean {
     return false
 }
 
-private fun File.isValuesXml(): Boolean {
-    if (!isFile || !extension.equals("xml", ignoreCase = true)) return false
-    val directory = parentFile?.name ?: return false
+private fun String.isValuesXmlPath(): Boolean {
+    if (!endsWith(".xml", ignoreCase = true)) return false
+    val directory = substringBeforeLast('/').substringAfterLast('/')
     return directory == "values" || directory.startsWith("values-")
 }
 
-private fun File.isNightValuesXml(): Boolean {
-    val directory = parentFile?.name ?: return false
+private fun String.isNightValuesXmlPath(): Boolean {
+    val directory = substringBeforeLast('/').substringAfterLast('/')
     return directory == "values-night" || directory.startsWith("values-night-")
 }
 
@@ -127,14 +126,19 @@ private val miraieUniversalDarkResourcePatch = resourcePatch(
     compatibleWith(COMPATIBILITY_MIRAIE)
 
     execute {
-        val resDirectory = get("res")
-        if (!resDirectory.isDirectory) {
-            throw PatchException("Decoded MirAIe res directory was not found.")
-        }
+        // Morphe decodes resources on demand. A directory listing only contains
+        // files decoded so far, so walking get("res") before calling decode()
+        // incorrectly returns no values XML files for an otherwise valid APK.
+        // Decode the APK's values resources first, then process the returned paths.
+        val valuesPaths = decode("res/values*/*.xml")
+            .filter(String::isValuesXmlPath)
 
-        val valuesFiles = resDirectory.walkTopDown().filter(File::isValuesXml).toList()
-        if (valuesFiles.isEmpty()) {
-            throw PatchException("No decoded values XML files were found.")
+        if (valuesPaths.isEmpty()) {
+            val available = listDecodableFiles("res/values*/*.xml")
+            throw PatchException(
+                "No values XML resources could be decoded. Matching APK entries: " +
+                    (available.take(12).joinToString().ifEmpty { "none" })
+            )
         }
 
         var themeStyles = 0
@@ -143,12 +147,11 @@ private val miraieUniversalDarkResourcePatch = resourcePatch(
         val existingNightColorNames = mutableSetOf<String>()
         val generatedNightColors = linkedMapOf<String, String>()
 
-        valuesFiles.forEach { file ->
-            val source = file.readText()
+        valuesPaths.forEach { path ->
+            val source = get(path).readText()
             if (!source.contains("<style") && !source.contains("<color")) return@forEach
 
-            val path = "res/" + file.relativeTo(resDirectory).invariantSeparatorsPath
-            val isNightFile = file.isNightValuesXml()
+            val isNightFile = path.isNightValuesXmlPath()
             document(path).use { xml ->
                 val styles = xml.getElementsByTagName("style")
                 for (index in 0 until styles.length) {
