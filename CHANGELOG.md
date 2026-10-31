@@ -1,3 +1,9 @@
+## [1.1.0-dev.2](https://github.com/sarvottam99/SARVO-Patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-10-31)
+
+### ✨ New Features
+
+* remove dashboard promotional banner ([7504d8d](https://github.com/sarvottam99/SARVO-Patches/commit/7504d8d51de384815673553e5e47185bf2aa203e))
+
 ## [1.1.0-dev.1](https://github.com/sarvottam99/SARVO-Patches/compare/v1.0.0...v1.1.0-dev.1) (2026-10-31)
 
 ### ✨ New Features
