@@ -112,7 +112,7 @@ val removeDashboardPromoBannerPatch = bytecodePatch(
                 iget-object v0, p0, $HOME_SCREEN_FRAGMENT->mDashboardBannerRv:$DASHBOARD_RECYCLER_VIEW;
                 if-eqz v0, :miraie_remove_dashboard_banner_done
                 const/4 v1, 0x8
-                invoke-virtual {v0, v1}, $ANDROID_VIEW->setVisibility(I)V;
+                invoke-virtual {v0, v1}, $ANDROID_VIEW->setVisibility(I)V
                 :miraie_remove_dashboard_banner_done
                 nop
             """
