@@ -10,6 +10,7 @@
     [
         "@semantic-release/commit-analyzer", {
         "releaseRules": [
+            { "type": "feat", "subject": "release SARVO Patches v1.0.0", "release": false },
             { "breaking": true, "release": "major" },
             { "type": "fix", "release": "patch" },
             { "type": "feat", "release": "minor" },
