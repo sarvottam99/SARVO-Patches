@@ -1,3 +1,9 @@
+## [1.0.0-dev.10](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* add system-following MirAIe DayNight theme ([a5f675c](https://github.com/sarvottam99/Miraie-Patches/commit/a5f675c3b65eb271a9804ab73cb090f070b5cff0))
+
 ## [1.0.0-dev.9](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2026-10-30)
 
 ### 🐛 Bug Fixes

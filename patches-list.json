@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0-dev.9",
+  "version": "1.0.0-dev.10",
   "patches": [
     {
       "name": "Change installer source",
@@ -47,7 +47,7 @@
     },
     {
       "name": "Dark mode",
-      "description": "Uses Android native Force Dark for MirAIe and retains readable energy-chart labels.",
+      "description": "Adds a proper system-following DayNight theme and dark palette for MirAIe, including readable energy-chart labels.",
       "default": true,
       "category": null,
       "compatiblePackages": [
