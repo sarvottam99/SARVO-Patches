@@ -23,7 +23,7 @@ Choose the stable release for normal use. To try development builds, enable pre-
 The catalogue below is generated from the actual patch bundle during each release. It includes supported app package names, tested versions, patch descriptions and available options.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0-dev.3](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.1.0-dev.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.1.0-dev.4](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.1.0-dev.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
 <summary>📦 MirAIe&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>

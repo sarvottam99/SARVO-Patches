@@ -1,3 +1,9 @@
+## [1.1.0-dev.4](https://github.com/sarvottam99/SARVO-Patches/compare/v1.1.0-dev.3...v1.1.0-dev.4) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* remove duplicate RecyclerView descriptor terminator ([7d10335](https://github.com/sarvottam99/SARVO-Patches/commit/7d10335fb65142480f3658301bd3702463d110ce))
+
 ## [1.1.0-dev.3](https://github.com/sarvottam99/SARVO-Patches/compare/v1.1.0-dev.2...v1.1.0-dev.3) (2026-10-31)
 
 ### 🐛 Bug Fixes
