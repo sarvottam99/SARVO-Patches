@@ -4,10 +4,10 @@ patches {
     about {
         name = "SARVO Patches"
         description = "A multi-app collection of Android patches for Morphe Manager, currently including Panasonic MirAIe."
-        source = "https://github.com/sarvottam99/Miraie-Patches"
+        source = "https://github.com/sarvottam99/SARVO-Patches"
         author = "Sarvottam"
         contact = "https://github.com/sarvottam99"
-        website = "https://github.com/sarvottam99/Miraie-Patches"
+        website = "https://github.com/sarvottam99/SARVO-Patches"
         license = "GPLv3"
     }
 }
