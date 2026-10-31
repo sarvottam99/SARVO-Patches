@@ -24,7 +24,7 @@ The catalogue below is generated from the actual patch bundle during each releas
 
 <!-- PATCHES_START EXPANDED -->
 > **[v1.0.0](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
-<details open>
+<details close>
 <summary>📦 MirAIe&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
