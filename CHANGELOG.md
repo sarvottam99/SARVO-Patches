@@ -1,3 +1,9 @@
+## [1.0.0-dev.11](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* publish universal MirAIe dark mode patch ([7f446e6](https://github.com/sarvottam99/Miraie-Patches/commit/7f446e652b70945221c10fe5c28a6e43ce031571))
+
 ## [1.0.0-dev.10](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-10-31)
 
 ### 🐛 Bug Fixes
