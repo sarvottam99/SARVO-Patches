@@ -1,3 +1,9 @@
+## [1.0.0-dev.13](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* validate dark color overrides against resource table ([a4c9a28](https://github.com/sarvottam99/Miraie-Patches/commit/a4c9a28e75df4270ca3c1d1f3f5a318244a0abde))
+
 ## [1.0.0-dev.12](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2026-10-31)
 
 ### 🐛 Bug Fixes
