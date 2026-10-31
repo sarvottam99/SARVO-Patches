@@ -1,14 +1,13 @@
-group = "app.template"
+group = "app.sarvo"
 
 patches {
-    // TODO: Update this section with your project details.
     about {
-        name = "UserXYZ Patches"
-        description = "Patches for apps I like"
-        source = "git@github.com:UserXYZ/morphe-patches.git"
-        author = "Awesome dev"
-        contact = "na"
-        website = "na"
+        name = "SARVO Patches"
+        description = "A multi-app collection of Android patches for Morphe Manager, currently including Panasonic MirAIe."
+        source = "https://github.com/sarvottam99/Miraie-Patches"
+        author = "Sarvottam"
+        contact = "https://github.com/sarvottam99"
+        website = "https://github.com/sarvottam99/Miraie-Patches"
         license = "GPLv3"
     }
 }
@@ -18,6 +17,7 @@ patches {
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 
 dependencies {
+    implementation(libs.morphe.patches.library)
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
 }
