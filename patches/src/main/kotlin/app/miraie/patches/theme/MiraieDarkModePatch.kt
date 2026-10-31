@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.resource.ResourceType
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -144,6 +145,7 @@ private val miraieUniversalDarkResourcePatch = resourcePatch(
         var themeStyles = 0
         var forceDarkItems = 0
         var nightColorsUpdated = 0
+        var skippedUnregisteredColors = 0
         val existingNightColorNames = mutableSetOf<String>()
         val generatedNightColors = linkedMapOf<String, String>()
 
@@ -167,8 +169,21 @@ private val miraieUniversalDarkResourcePatch = resourcePatch(
                 for (index in 0 until colors.length) {
                     val color = colors.item(index) as? Element ?: continue
                     val name = color.getAttribute("name")
-                    if (isNightFile) existingNightColorNames.add(name)
                     val replacement = name.universalNightColor(color.textContent) ?: continue
+
+                    // A value XML element is not sufficient proof that the APK has a
+                    // resource-table entry of type COLOR with this name. In particular,
+                    // some MirAIe/embedded-library names occur in XML metadata or under
+                    // another resource type. Adding those as <color> entries makes
+                    // Arsclib fail with "Undefined entry name" while encoding values-night.
+                    // ResourceIds reads the original compiled ARSC table and is available
+                    // before resource decoding, so only override real color resources.
+                    if (!resourceIds.has(ResourceType.COLOR, name)) {
+                        skippedUnregisteredColors++
+                        continue
+                    }
+
+                    if (isNightFile) existingNightColorNames.add(name)
 
                     if (isNightFile) {
                         if (color.textContent.trim() != replacement) {
@@ -206,8 +221,8 @@ private val miraieUniversalDarkResourcePatch = resourcePatch(
         println(
             "MirAIe dark resources: enabled Force Dark on $themeStyles theme style(s) " +
                 "($forceDarkItems item(s) changed), updated $nightColorsUpdated existing night color(s), " +
-                "and generated " +
-                generatedNightColors.size.toString() + " night color override(s)."
+                "generated " + generatedNightColors.size.toString() + " night color override(s), " +
+                "and skipped $skippedUnregisteredColors candidate(s) without a compiled COLOR resource ID."
         )
     }
 }
