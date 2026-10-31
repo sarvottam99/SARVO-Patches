@@ -23,9 +23,9 @@ Choose the stable release for normal use. To try development builds, enable pre-
 The catalogue below is generated from the actual patch bundle during each release. It includes supported app package names, tested versions, patch descriptions and available options.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0-dev.1](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.1.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.1.0-dev.2](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.1.0-dev.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
-<summary>📦 MirAIe&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 MirAIe&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **Package name:** `com.panasonic.in.miraie`
@@ -41,6 +41,7 @@ The catalogue below is generated from the actual patch bundle during each releas
 | [Dark mode](#dark-mode) | Forces MirAIe into night mode, enables Android Force Dark, darkens its legal WebView, and keeps energy-chart labels readable. |  |
 | [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
 | [Hide Lifestyle tab](#hide-lifestyle-tab) | Hides only the Lifestyle tab from MirAIe's bottom navigation. Other tabs, icons and their order remain unchanged. |  |
+| [Remove dashboard promotional banner](#remove-dashboard-promotional-banner) | Hides the rotating promotional banner at the top of the Devices dashboard without removing device cards or other dashboard content. |  |
 | [Spoof signature](#spoof-signature) | Spoofs the package signature of the original APK. |  |
 
 </details>
