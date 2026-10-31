@@ -25,7 +25,7 @@ private object HomeScreenInitBottomTabsFingerprint : Fingerprint(
 val hideLifestyleTabPatch = bytecodePatch(
     name = "Hide Lifestyle tab",
     description = "Hides only the Lifestyle tab from MirAIe's bottom navigation. Other tabs, icons and their order remain unchanged.",
-    default = false
+    default = true
 ) {
     compatibleWith(COMPATIBILITY_MIRAIE)
 
