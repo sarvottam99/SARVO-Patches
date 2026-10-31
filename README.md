@@ -46,44 +46,6 @@ The catalogue below is generated from the actual patch bundle during each releas
 
 <!-- PATCHES_END -->
 
-## One bundle, multiple apps
-
-All app-specific patches are shipped in the same `.mpp` bundle. Compatibility metadata determines which patches are offered for an installed app.
-
-The collection currently starts with Panasonic MirAIe. Additional apps can be added as separate patch groups while keeping the same SARVO Patches source and release channel.
-
-## Releases
-
-- **Stable:** published from `main` and intended for everyday use.
-- **Development:** published from `dev` as pre-releases for testing upcoming changes.
-
-The release workflow builds the bundle, generates the machine-readable patch catalogue and bundle manifest, updates this README's catalogue, and attaches the `.mpp` file to the GitHub release. Generated files such as `patches-list.json`, `patches-bundle.json` and `CHANGELOG.md` should not be edited by hand.
-
-## Build locally
-
-Requirements: Java 21 and the dependencies declared by the Gradle project.
-
-```bash
-./gradlew buildAndroid
-```
-
-The bundle is written to:
-
-```text
-patches/build/libs/patches-*.mpp
-```
-
-Import that `.mpp` file into Morphe Manager to test a local build. See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) and [patcher documentation](https://github.com/MorpheApp/morphe-patcher/blob/main/docs/1_patcher_intro.md) for development guidance.
-
-## Add another app
-
-1. Create a package for the app's patches under `patches/src/main/kotlin/`.
-2. Define its `Compatibility` metadata, including package name, APK type and supported versions.
-3. Attach that compatibility to each app-specific patch with `compatibleWith(...)`.
-4. Build and test the combined bundle with `./gradlew buildAndroid`.
-
-The patch-list generator discovers patches from the built bundle, so supported app groups and patch options are reflected in the catalogue automatically.
-
 ## Project notes
 
 SARVO Patches is an independent community project. It is not affiliated with, endorsed by, or sponsored by Panasonic or the Morphe project. **Morphe Manager** and the Morphe patching framework are separate projects.
