@@ -3,6 +3,6 @@
 - Hide Lifestyle tab.
 - Hide dashboard promotional banner.
 
-## 1.0.0
+## 1.0.0 (2026-10-31)
 
 - Force Dark mode.
