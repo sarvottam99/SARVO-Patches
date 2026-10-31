@@ -1,3 +1,9 @@
+## [1.0.0-dev.12](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* decode values resources before dark mode scan ([c38bc00](https://github.com/sarvottam99/Miraie-Patches/commit/c38bc00cc0c4deae77e6de8b9fb176e9ffac51d9))
+
 ## [1.0.0-dev.11](https://github.com/sarvottam99/Miraie-Patches/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2026-10-31)
 
 ### 🐛 Bug Fixes
