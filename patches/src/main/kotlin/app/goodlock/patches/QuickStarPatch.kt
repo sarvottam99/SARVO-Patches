@@ -24,21 +24,17 @@ private val COMPATIBILITY_GOODLOCK = Compatibility(
 )
 
 /*
- * Good Lock 3.0.16.6:
+ * Good Lock 3.0.16.6's plugin repository method:
  *
- * Lwe/w;->e(List<StaticPlugin>, List<StorePlugin>, Policy): ArrayList
+ *   Lwe/w;->e(List<StaticPlugin>, List<StorePlugin>, Policy): ArrayList
  *
- * StaticPlugin.pkgName is Lbf/m;->g and StorePlugin.appId is Lcf/f;->c.
- * The repository drops a static plugin when it cannot find a StorePlugin
- * record with the same appId, logging "Plugin filtered: ... not found in store".
+ * The method filters static plugin entries unless a StorePlugin with the same
+ * appId exists. On the uploaded APK, QuickStar's package is checked using
+ * Lbf/m.g (StaticPlugin.pkgName) against Lcf/f.c (StorePlugin.appId).
  *
- * Instead of special-casing QuickStar, this patch copies the store list and
- * synthesizes a minimal StorePlugin record for every static-catalogue entry
- * that is missing from it. The original repository method then continues to
- * run all its normal policy/device checks against the augmented list.
- *
- * This is intentionally pinned to Good Lock 3.0.16.6. Samsung may change the
- * obfuscated model classes, constructor signature, or filtering logic later.
+ * Keep the fingerprint deliberately version-specific. If Samsung changes the
+ * obfuscated method or its filtering logic, the patch should fail rather than
+ * inject code into a different method.
  */
 private object GoodLockPluginListFingerprint : Fingerprint(
     definingClass = GOODLOCK_CLASS,
@@ -57,9 +53,9 @@ private object GoodLockPluginListFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val showAllStaticPluginsInGoodLockPatch = bytecodePatch(
-    name = "Show all static-catalogue plugins",
-    description = "Adds missing store records for Good Lock's static plugin catalogue so entries are not hidden solely because the store catalogue omits them. Original compatibility and policy checks remain active.",
+val showQuickStarInGoodLockPatch = bytecodePatch(
+    name = "Show QuickStar in Good Lock",
+    description = "Adds a local QuickStar store entry when Samsung's catalogue omits it, allowing Good Lock to retain the installed module in its Plugins list.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_GOODLOCK)
@@ -100,133 +96,68 @@ val showAllStaticPluginsInGoodLockPatch = bytecodePatch(
             )
         }
 
-        // v0-v22 are used by this insertion, including the two-word long at v17/v18.
-        if (implementation.registerCount < 23) {
+        if (implementation.registerCount < 19) {
             throw PatchException(
-                "Unexpected Good Lock plugin repository register layout; at least 23 local registers are required"
+                "Unexpected Good Lock plugin repository register layout; at least 19 local registers are required"
             )
         }
 
+        /*
+         * The second method parameter (p2) is the StorePlugin list. Copy it so
+         * the original list is not mutated, check for an existing QuickStar
+         * record, and add one only when Samsung's catalogue does not provide it.
+         *
+         * StorePlugin constructor fields in 3.0.16.6:
+         * productID, productName, appId, iconImgURL, versionName, versionCode,
+         * realContentSize, description, updateDescription,
+         * hiddenByStagedRollout, source.
+         *
+         * DEPLOYED is used for the synthetic record. The normal Good Lock code
+         * still checks whether the QuickStar package is installed.
+         */
         method.addInstructions(
             0,
             """
-                # Copy the existing store catalogue. Never mutate the caller's list.
-                move-object/from16 v0, p2
-                new-instance v1, Ljava/util/ArrayList;
-                invoke-direct {v1, v0}, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V
-
-                # Iterate every entry in the static plugin catalogue.
-                move-object/from16 v2, p1
-                invoke-interface {v2}, Ljava/util/List;->iterator()Ljava/util/Iterator;
-                move-result-object v2
-
-                :sarvo_static_catalogue_next
-                invoke-interface {v2}, Ljava/util/Iterator;->hasNext()Z
-                move-result v3
-                if-eqz v3, :sarvo_static_catalogue_done
-
-                invoke-interface {v2}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+                move-object/from16 v1, p2
+                new-instance v0, Ljava/util/ArrayList;
+                invoke-direct {v0, v1}, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V
+                invoke-interface {v0}, Ljava/util/List;->iterator()Ljava/util/Iterator;
+                move-result-object v1
+                :sarvo_quickstar_store_scan
+                invoke-interface {v1}, Ljava/util/Iterator;->hasNext()Z
+                move-result v2
+                if-eqz v2, :sarvo_quickstar_store_add
+                invoke-interface {v1}, Ljava/util/Iterator;->next()Ljava/lang/Object;
                 move-result-object v3
-                check-cast v3, Lbf/m;
+                check-cast v3, Lcf/f;
+                iget-object v4, v3, Lcf/f;->c:Ljava/lang/String;
+                const-string v5, "com.samsung.android.qstuner"
+                invoke-virtual {v5, v4}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                move-result v2
+                if-nez v2, :sarvo_quickstar_store_done
+                goto :sarvo_quickstar_store_scan
 
-                # StaticPlugin.pkgName is the package identifier used for matching.
-                iget-object v4, v3, Lbf/m;->g:Ljava/lang/String;
-                if-eqz v4, :sarvo_static_catalogue_next
-                invoke-virtual {v4}, Ljava/lang/String;->isEmpty()Z
-                move-result v5
-                if-nez v5, :sarvo_static_catalogue_next
-
-                # Check whether the store catalogue already contains this appId.
-                invoke-interface {v1}, Ljava/util/List;->iterator()Ljava/util/Iterator;
-                move-result-object v5
-
-                :sarvo_static_catalogue_scan_store
-                invoke-interface {v5}, Ljava/util/Iterator;->hasNext()Z
-                move-result v6
-                if-eqz v6, :sarvo_static_catalogue_add
-
-                invoke-interface {v5}, Ljava/util/Iterator;->next()Ljava/lang/Object;
-                move-result-object v6
-                check-cast v6, Lcf/f;
-                iget-object v7, v6, Lcf/f;->c:Ljava/lang/String;
-                invoke-virtual {v4, v7}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-                move-result v8
-                if-eqz v8, :sarvo_static_catalogue_scan_store
-                goto :sarvo_static_catalogue_next
-
-                :sarvo_static_catalogue_add
-                # Minimal synthetic StorePlugin based on the static entry.
-                new-instance v10, Lcf/f;
-                move-object v11, v4
-
-                # productName: prefer appName, then title, then package name.
-                iget-object v12, v3, Lbf/m;->e:Ljava/lang/String;
-                if-eqz v12, :sarvo_static_catalogue_name_title
-                invoke-virtual {v12}, Ljava/lang/String;->isEmpty()Z
-                move-result v8
-                if-eqz v8, :sarvo_static_catalogue_name_ready
-
-                :sarvo_static_catalogue_name_title
-                iget-object v12, v3, Lbf/m;->i:Ljava/lang/String;
-                if-eqz v12, :sarvo_static_catalogue_name_package
-                invoke-virtual {v12}, Ljava/lang/String;->isEmpty()Z
-                move-result v8
-                if-eqz v8, :sarvo_static_catalogue_name_ready
-
-                :sarvo_static_catalogue_name_package
-                move-object v12, v4
-
-                :sarvo_static_catalogue_name_ready
-                move-object v13, v4
-                const-string v14, ""
+                :sarvo_quickstar_store_add
+                new-instance v6, Lcf/f;
+                const-string v7, "com.samsung.android.qstuner"
+                const-string v8, "QuickStar"
+                const-string v9, "com.samsung.android.qstuner"
+                const-string v10, ""
+                const-string v11, "11.0.03.15"
+                const v12, 0x41957978
+                invoke-static {v12}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+                move-result-object v12
+                const-wide/16 v13, 0x0
                 const-string v15, ""
-                const/4 v16, 0x0
+                const-string v16, ""
+                sget-object v17, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+                sget-object v18, Lcf/c0;->m:Lcf/c0;
+                invoke-direct/range {v6 .. v18}, Lcf/f;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JLjava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Lcf/c0;)V
+                invoke-interface {v0, v6}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+                move-result v2
 
-                # Preserve the verified QuickStar version metadata from the
-                # original working patch. Other catalogue-only entries use 0
-                # because the static catalogue has no module version field.
-                const-string v8, "$QUICKSTAR_PACKAGE"
-                invoke-virtual {v8, v4}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-                move-result v8
-                if-eqz v8, :sarvo_static_catalogue_version_ready
-                const-string v15, "11.0.03.15"
-                const v16, 0x41957978
-
-                :sarvo_static_catalogue_version_ready
-                invoke-static {v16}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
-                move-result-object v16
-                const-wide/16 v17, 0x0
-
-                # Use the static short description, falling back to its description.
-                iget-object v19, v3, Lbf/m;->f:Ljava/lang/String;
-                if-eqz v19, :sarvo_static_catalogue_description_full
-                invoke-virtual {v19}, Ljava/lang/String;->isEmpty()Z
-                move-result v8
-                if-eqz v8, :sarvo_static_catalogue_description_ready
-
-                :sarvo_static_catalogue_description_full
-                iget-object v19, v3, Lbf/m;->j:Ljava/lang/String;
-                if-eqz v19, :sarvo_static_catalogue_description_empty
-                invoke-virtual {v19}, Ljava/lang/String;->isEmpty()Z
-                move-result v8
-                if-eqz v8, :sarvo_static_catalogue_description_ready
-
-                :sarvo_static_catalogue_description_empty
-                const-string v19, ""
-
-                :sarvo_static_catalogue_description_ready
-                const-string v20, ""
-                sget-object v21, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
-                sget-object v22, Lcf/c0;->m:Lcf/c0;
-                invoke-direct/range {v10 .. v22}, Lcf/f;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JLjava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Lcf/c0;)V
-
-                invoke-interface {v1, v10}, Ljava/util/List;->add(Ljava/lang/Object;)Z
-                move-result v8
-                goto :sarvo_static_catalogue_next
-
-                :sarvo_static_catalogue_done
-                # Hand the augmented list to the original repository implementation.
-                move-object/from16 p2, v1
+                :sarvo_quickstar_store_done
+                move-object/from16 p2, v0
             """
         )
     }
