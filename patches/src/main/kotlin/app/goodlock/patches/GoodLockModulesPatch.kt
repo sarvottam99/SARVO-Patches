@@ -221,8 +221,8 @@ private object GoodLockPluginListFingerprint : Fingerprint(
 
 @Suppress("unused")
 val showPopularGoodLockModulesPatch = bytecodePatch(
-    name = "Show Good Lock modules",
-    description = "Adds the remaining verified Good Lock modules missing from the store list using a fixed allowlist and APKMirror version metadata.",
+    name = "Unlock all Samsung Good Lock modules",
+    description = "Show all Good Lock modules irrespective of Samsung official device compatibility. They may or may not work depending on your device Android and/or UI version or other factors. You need to install unsupported modules separately from apk files from the internet.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_GOODLOCK)
