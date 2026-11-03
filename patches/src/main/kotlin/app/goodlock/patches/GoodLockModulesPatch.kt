@@ -23,7 +23,7 @@ private val COMPATIBILITY_GOODLOCK = Compatibility(
 )
 
 /**
- * One fixed StorePlugin record per known Good Lock module.
+ * One fixed StorePlugin record per documented Good Lock module.
  *
  * Package IDs are taken from Good Lock 3.0.16.6's own manual catalogue
  * (assets/goodlock_manual_v9.csv). Version names and version codes are the
@@ -41,7 +41,7 @@ private data class GoodLockModule(
     val versionCode: Int
 )
 
-private val POPULAR_MODULES = listOf(
+private val GOODLOCK_MODULES = listOf(
     GoodLockModule(
         "com.samsung.android.qstuner",
         "QuickStar",
@@ -149,6 +149,48 @@ private val POPULAR_MODULES = listOf(
         "Nice Catch",
         "9.0.00.0",
         900000000
+    ),
+    GoodLockModule(
+        "com.samsung.android.displayassistant",
+        "Display Assistant",
+        "8.5.20",
+        852000000
+    ),
+    GoodLockModule(
+        "com.samsung.dropship_client",
+        "Dropship",
+        "1.2.7",
+        40
+    ),
+    GoodLockModule(
+        "com.samsung.android.edgelightingplus",
+        "Edge lighting+",
+        "8.0.00.1",
+        800000001
+    ),
+    GoodLockModule(
+        "com.samsung.android.app.edgetouch",
+        "Edge Touch",
+        "1.3.16",
+        131600000
+    ),
+    GoodLockModule(
+        "com.samsung.android.gts",
+        "Galaxy To Share",
+        "1.0.79.0",
+        107900000
+    ),
+    GoodLockModule(
+        "com.samsung.android.gallery.assistant.app",
+        "Gallery Assistant",
+        "2.0.01.5",
+        200100005
+    ),
+    GoodLockModule(
+        "com.samsung.android.game.honeyplayplus",
+        "Game Booster +",
+        "2.0.00.33",
+        200033000
     )
 )
 
@@ -179,8 +221,8 @@ private object GoodLockPluginListFingerprint : Fingerprint(
 
 @Suppress("unused")
 val showPopularGoodLockModulesPatch = bytecodePatch(
-    name = "Show popular Good Lock modules",
-    description = "Adds verified Good Lock modules missing from the store list, using a fixed package allowlist and APKMirror version metadata.",
+    name = "Show Good Lock modules",
+    description = "Adds the remaining verified Good Lock modules missing from the store list using a fixed allowlist and APKMirror version metadata.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_GOODLOCK)
@@ -237,7 +279,7 @@ val showPopularGoodLockModulesPatch = bytecodePatch(
                 "invoke-direct {v0, v1}, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V"
             )
 
-            POPULAR_MODULES.forEachIndexed { index, module ->
+            GOODLOCK_MODULES.forEachIndexed { index, module ->
                 val label = "sarvo_goodlock_module_$index"
                 val versionCodeHex = module.versionCode.toString(16)
 
