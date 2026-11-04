@@ -50,33 +50,33 @@ This patch makes Good Lock show all 25 plugins, including entries Samsung may hi
 <details>
 <summary>View all 25 plugins and APKMirror links</summary>
 
-| # | Plugin | Package name | APKMirror |
-|---:|---|---|---|
-| 1 | QuickStar | `com.samsung.android.qstuner` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/quickstar/) |
-| 2 | Home Up | `com.samsung.android.app.homestar` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/home-up/) |
-| 3 | MultiStar | `com.samsung.android.multistar` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-multistar/) |
-| 4 | Sound Assistant | `com.samsung.android.soundassistant` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/soundassistant/) |
-| 5 | LockStar | `com.samsung.systemui.lockstar` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/lockstar/) |
-| 6 | NotiStar | `com.samsung.systemui.notilus` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/notistar/) |
-| 7 | NavStar | `com.samsung.systemui.navillera` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-navstar/) |
-| 8 | ClockFace | `com.samsung.android.app.clockface` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-clockface/) |
-| 9 | Theme Park | `com.samsung.android.themedesigner` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-theme-park/) |
-| 10 | Wonderland | `com.samsung.android.wonderland.wallpaper` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/wonderland/) |
-| 11 | Pentastic | `com.samsung.android.pentastic` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/pentastic/) |
-| 12 | RegiStar | `com.samsung.android.app.galaxyregistry` | [APKMirror](https://www.apkmirror.com/apk/good-lock-labs/registar/) |
-| 13 | One Hand Operation + | `com.samsung.android.sidegesturepad` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/one-hand-operation/) |
-| 14 | Nice Shot | `com.samsung.android.app.captureplugin` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/nice-shot/) |
-| 15 | Camera Assistant | `com.samsung.android.app.cameraassistant` | [APKMirror](https://www.apkmirror.com/apk/good-lock-labs/camera-assistant/) |
-| 16 | Routines + | `com.samsung.android.app.routineplus` | [APKMirror](https://www.apkmirror.com/apk/good-lock-labs/samsung-routine/) |
-| 17 | Keys Cafe | `com.samsung.android.keyscafe` | [APKMirror](https://www.apkmirror.com/apk/good-lock-labs/keys-cafe/) |
-| 18 | Nice Catch | `com.samsung.android.app.goodcatch` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/nice-catch/) |
-| 19 | Display Assistant | `com.samsung.android.displayassistant` | [APKMirror](https://www.apkmirror.com/apk/galaxy-labs/display-assistant-beta/) |
-| 20 | Dropship | `com.samsung.dropship_client` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-dropship/) |
-| 21 | Edge lighting+ | `com.samsung.android.edgelightingplus` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/edgelighting/) |
-| 22 | Edge Touch | `com.samsung.android.app.edgetouch` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/edge-touch/) |
-| 23 | Galaxy To Share | `com.samsung.android.gts` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/galaxy-to-share/) |
-| 24 | Gallery Assistant | `com.samsung.android.gallery.assistant.app` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/gallery-assistant/) |
-| 25 | Game Booster + | `com.samsung.android.game.honeyplayplus` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/game-booster-2/) |
+| # | Plugin | Version | Package name | APKMirror |
+|---:|---|---|---|---|
+| 1 | QuickStar | `11.0.03.15` | `com.samsung.android.qstuner` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/quickstar/) |
+| 2 | Home Up | `18.0.00.38` | `com.samsung.android.app.homestar` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/home-up/) |
+| 3 | MultiStar | `11.2.03` | `com.samsung.android.multistar` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-multistar/) |
+| 4 | Sound Assistant | `9.0.00.11` | `com.samsung.android.soundassistant` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/soundassistant/) |
+| 5 | LockStar | `9.0.00.5` | `com.samsung.systemui.lockstar` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/lockstar/) |
+| 6 | NotiStar | `9.0.79.0` | `com.samsung.systemui.notilus` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/notistar/) |
+| 7 | NavStar | `9.0.00.16` | `com.samsung.systemui.navillera` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-navstar/) |
+| 8 | ClockFace | `3.4.01.3` | `com.samsung.android.app.clockface` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-clockface/) |
+| 9 | Theme Park | `1.1.02.2` | `com.samsung.android.themedesigner` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-theme-park/) |
+| 10 | Wonderland | `1.6.22` | `com.samsung.android.wonderland.wallpaper` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/wonderland/) |
+| 11 | Pentastic | `3.0.01` | `com.samsung.android.pentastic` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/pentastic/) |
+| 12 | RegiStar | `1.0.73` | `com.samsung.android.app.galaxyregistry` | [APKMirror](https://www.apkmirror.com/apk/good-lock-labs/registar/) |
+| 13 | One Hand Operation + | `9.3.13.0` | `com.samsung.android.sidegesturepad` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/one-hand-operation/) |
+| 14 | Nice Shot | `2.3.09` | `com.samsung.android.app.captureplugin` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/nice-shot/) |
+| 15 | Camera Assistant | `4.5.00.20` | `com.samsung.android.app.cameraassistant` | [APKMirror](https://www.apkmirror.com/apk/good-lock-labs/camera-assistant/) |
+| 16 | Routines + | `1.1.23` | `com.samsung.android.app.routineplus` | [APKMirror](https://www.apkmirror.com/apk/good-lock-labs/samsung-routine/) |
+| 17 | Keys Cafe | `1.8.05.4` | `com.samsung.android.keyscafe` | [APKMirror](https://www.apkmirror.com/apk/good-lock-labs/keys-cafe/) |
+| 18 | Nice Catch | `9.0.00.0` | `com.samsung.android.app.goodcatch` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/nice-catch/) |
+| 19 | Display Assistant | `8.5.20` | `com.samsung.android.displayassistant` | [APKMirror](https://www.apkmirror.com/apk/galaxy-labs/display-assistant-beta/) |
+| 20 | Dropship | `1.2.7` | `com.samsung.dropship_client` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/samsung-dropship/) |
+| 21 | Edge lighting+ | `8.0.00.1` | `com.samsung.android.edgelightingplus` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/edgelighting/) |
+| 22 | Edge Touch | `1.3.16` | `com.samsung.android.app.edgetouch` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/edge-touch/) |
+| 23 | Galaxy To Share | `1.0.79.0` | `com.samsung.android.gts` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/galaxy-to-share/) |
+| 24 | Gallery Assistant | `2.0.01.5` | `com.samsung.android.gallery.assistant.app` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/gallery-assistant/) |
+| 25 | Game Booster + | `2.0.00.33` | `com.samsung.android.game.honeyplayplus` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/game-booster-2/) |
 
 Choose an APK compatible with your device's Android version and CPU architecture. APK availability and compatibility can change.
 
