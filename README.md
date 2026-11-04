@@ -95,6 +95,46 @@ APKMirror pages list available releases and variants. Select an APK that matches
 The catalogue below is generated from the compiled patch bundle and `patches-list.json` during a semantic-release run. It lists the app packages, supported versions, patch descriptions, and configurable options declared by the patches.
 
 <!-- PATCHES_START -->
+> **[v1.2.0](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+<details open>
+<summary>📦 MirAIe&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<br>
+
+**Package name:** `com.panasonic.in.miraie`
+
+**🎯 Supported versions:**
+
+| 🧪&nbsp;01.4.32 | 01.4.30 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from an app store. | • Spoofed package installer name |
+| [Dark mode](#dark-mode) | Forces MirAIe into night mode, enables Android Force Dark, darkens its legal WebView, and keeps energy-chart labels readable. |  |
+| [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
+| [Hide Lifestyle tab](#hide-lifestyle-tab) | Hides only the Lifestyle tab from MirAIe's bottom navigation. Other tabs, icons and their order remain unchanged. |  |
+| [Remove dashboard promotional banner](#remove-dashboard-promotional-banner) | Removes the dashboard promotional carousel before it initializes. |  |
+| [Spoof signature](#spoof-signature) | Spoofs the package signature of the original APK. |  |
+
+</details>
+
+<details open>
+<summary>📦 Samsung Good Lock&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `com.samsung.android.goodlock`
+
+**🎯 Supported versions:**
+
+| 3.0.16.6 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock all Samsung Good Lock modules](#unlock-all-samsung-good-lock-modules) | Show all Good Lock modules irrespective of Samsung official device compatibility. They may or may not work depending on your device Android and/or UI version or other factors. You need to install unsupported modules separately from apk files from the internet. |  |
+
+</details>
+
 <!-- PATCHES_END -->
 
 ## Build and release
