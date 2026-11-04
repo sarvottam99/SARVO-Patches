@@ -1,6 +1,6 @@
 # SARVO Patches
 
-A multi-app collection of Android bytecode patches for **Morphe Manager**. SARVO Patches brings together app-specific customizations in one Morphe patch source, with each patch declaring the app package and versions it targets.
+A multi-app collection of Android bytecode patches for **Morphe Manager**, maintained in one installable patch source.
 
 <a href="https://morphe.software/add-source?github=sarvottam99/SARVO-Patches">
   <img src=".github/assets/add-to-morphe.svg" alt="Add SARVO Patches to Morphe Manager" height="48">
@@ -9,56 +9,48 @@ A multi-app collection of Android bytecode patches for **Morphe Manager**. SARVO
 ## Install
 
 1. Install **Morphe Manager**.
-2. Add this source using the button above, or add the source manually:
+2. Add this source using the button above, or enter `sarvottam99/SARVO-Patches` manually.
+3. Select the target app and patches in Morphe Manager, then build and install the patched APK using its recommended flow.
 
-   `sarvottam99/SARVO-Patches`
-3. Open the source in Morphe Manager, choose the app you want to patch, select the available patches, and build the patched APK.
-4. Install the output using the install flow recommended by Morphe Manager.
+Use a stable release for normal use. Enable pre-releases in the source settings to try development builds.
 
-Use a stable release for normal use. Development builds, when available, can be enabled from the source's pre-release settings.
-
-## Supported apps and patches
-
-### Panasonic MirAIe
-
-| Field | Details |
-|---|---|
-| App | Panasonic MirAIe |
-| Package | `com.panasonic.in.miraie` |
-| Patch family | MirAIe UI, appearance, installer and update customizations |
-
-The MirAIe patch set includes:
-
-| Patch | Purpose |
-|---|---|
-| **Change installer source** | Spoofs the installer identity reported to the app. The selected installer identity can be configured in the patch options. |
-| **Dark mode** | Forces the app into night mode, enables Android Force Dark, darkens its legal WebView, and preserves readable energy-chart labels. |
-| **Disable Play Store updates** | Raises the reported version code to discourage Play Store updates. This can cause unexpected behavior and does not work with root-mounted installations. |
-| **Hide Lifestyle tab** | Hides the Lifestyle item from the bottom navigation without reordering the other tabs. |
-| **Remove dashboard promotional banner** | Removes the dashboard promotional carousel before it initializes. |
-| **Spoof signature** | Spoofs the package signature expected by the original app. |
-
-The exact supported MirAIe versions are declared in the patch compatibility metadata and shown by Morphe Manager. Check that list before patching an APK.
-
-### Samsung Good Lock
-
-| Field | Details |
-|---|---|
-| App | Samsung Good Lock |
-| Package | `com.samsung.android.goodlock` |
-| Target version declared by the patch | `3.0.16.6` |
-| Patch | **Unlock all Samsung Good Lock modules** |
-
-**What it does:** Good Lock builds its plugin catalogue using device and compatibility information. This patch adds a curated set of 25 plugin records to Good Lock's store-backed plugin list when they are not already present. Good Lock's normal catalogue processing then displays these entries instead of filtering them out solely because Samsung has not listed them for that device.
-
-**What it does not do:** The patch does not install the individual plugins, modify their internals, or make an unsupported plugin universally compatible. Some plugins depend on Samsung framework components, One UI versions, device-specific features, or other services. A plugin can appear in Good Lock and still fail to install, launch, or function correctly on a non-Samsung device or unsupported software build. Install a compatible plugin APK separately when needed, and check its Android version and ABI requirements before installing it.
-
-**Compatibility note:** This patch targets the Good Lock app package and the exact app version shown above. A different Good Lock release may have a changed internal layout and is not automatically supported. Do not assume that a successful patch means all 25 plugins will work on every device.
+## Supported apps & patches
 
 <details>
-<summary>Show all 25 Good Lock plugins and their APKMirror pages</summary>
+<summary><strong>Panasonic MirAIe</strong></summary>
 
-| # | Good Lock plugin | Package name | APKMirror |
+| App detail | Value |
+|---|---|
+| Package | `com.panasonic.in.miraie` |
+| Supported versions | `01.4.32`, `01.4.30` |
+
+**Patches**
+
+<details>
+<summary>View 3 MirAIe patches</summary>
+
+- **Dark mode** — Applies a dark appearance across the app, including its legal WebView, while keeping chart labels readable.
+- **Hide Lifestyle tab** — Hides the Lifestyle tab from the bottom navigation.
+- **Remove dashboard promotional banner** — Removes the promotional carousel from the dashboard.
+
+</details>
+</details>
+
+<details>
+<summary><strong>Samsung Good Lock</strong></summary>
+
+| App detail | Value |
+|---|---|
+| Package | `com.samsung.android.goodlock` |
+| Target version | `3.0.16.6` |
+| Patch | **Unlock all Samsung Good Lock modules** |
+
+This patch makes Good Lock show all 25 plugins, including entries Samsung may hide for a device. The patch only unlocks their visibility; install each plugin separately using the APKMirror links below. A plugin may or may not install or work depending on the device, Android/One UI version, Samsung components, APK version, and ABI.
+
+<details>
+<summary>View all 25 plugins and APKMirror links</summary>
+
+| # | Plugin | Package name | APKMirror |
 |---:|---|---|---|
 | 1 | QuickStar | `com.samsung.android.qstuner` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/quickstar/) |
 | 2 | Home Up | `com.samsung.android.app.homestar` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/home-up/) |
@@ -86,66 +78,63 @@ The exact supported MirAIe versions are declared in the patch compatibility meta
 | 24 | Gallery Assistant | `com.samsung.android.gallery.assistant.app` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/gallery-assistant/) |
 | 25 | Game Booster + | `com.samsung.android.game.honeyplayplus` | [APKMirror](https://www.apkmirror.com/apk/samsung-electronics-co-ltd/game-booster-2/) |
 
-APKMirror pages list available releases and variants. Select an APK that matches your device's Android version and CPU architecture; availability and compatibility can change over time.
+Choose an APK compatible with your device's Android version and CPU architecture. APK availability and compatibility can change.
 
+</details>
 </details>
 
 ## Patch catalogue
 
-The catalogue below is generated from the compiled patch bundle and `patches-list.json` during a semantic-release run. It lists the app packages, supported versions, patch descriptions, and configurable options declared by the patches.
+<details>
+<summary>Browse the generated patch catalogue</summary>
+
+The full patch index is generated from the compiled bundle during a release. Morphe Manager remains the source of truth for the versions and options available for a particular APK.
 
 <!-- PATCHES_START -->
 > **[v1.2.0](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
-<details open>
+<details>
 <summary>📦 MirAIe&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **Package name:** `com.panasonic.in.miraie`
 
-**🎯 Supported versions:**
+**🎯 Supported versions:** `01.4.32`, `01.4.30`
 
-| 🧪&nbsp;01.4.32 | 01.4.30 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from an app store. | • Spoofed package installer name |
-| [Dark mode](#dark-mode) | Forces MirAIe into night mode, enables Android Force Dark, darkens its legal WebView, and keeps energy-chart labels readable. |  |
-| [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
-| [Hide Lifestyle tab](#hide-lifestyle-tab) | Hides only the Lifestyle tab from MirAIe's bottom navigation. Other tabs, icons and their order remain unchanged. |  |
-| [Remove dashboard promotional banner](#remove-dashboard-promotional-banner) | Removes the dashboard promotional carousel before it initializes. |  |
-| [Spoof signature](#spoof-signature) | Spoofs the package signature of the original APK. |  |
+| Patch | Description |
+|---|---|
+| [Change installer source](#change-installer-source) | Spoofs the installer identity reported to the app. |
+| [Dark mode](#dark-mode) | Applies dark appearance throughout the app. |
+| [Disable Play Store updates](#disable-play-store-updates) | Raises the reported version code to discourage Play Store updates. |
+| [Hide Lifestyle tab](#hide-lifestyle-tab) | Hides the Lifestyle item from the bottom navigation. |
+| [Remove dashboard promotional banner](#remove-dashboard-promotional-banner) | Removes the dashboard promotional carousel. |
+| [Spoof signature](#spoof-signature) | Spoofs the package signature expected by the original app. |
 
 </details>
 
-<details open>
+<details>
 <summary>📦 Samsung Good Lock&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **Package name:** `com.samsung.android.goodlock`
 
-**🎯 Supported versions:**
+**🎯 Supported version:** `3.0.16.6`
 
-| 3.0.16.6 |
-| :---: |
+| Patch | Description |
+|---|---|
+| [Unlock all Samsung Good Lock modules](#unlock-all-samsung-good-lock-modules) | Shows all 25 Good Lock plugins in the catalogue. Plugins must be installed separately and may not work on every device. |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock all Samsung Good Lock modules](#unlock-all-samsung-good-lock-modules) | Show all Good Lock modules irrespective of Samsung official device compatibility. They may or may not work depending on your device Android and/or UI version or other factors. You need to install unsupported modules separately from apk files from the internet. |  |
+</details>
+<!-- PATCHES_END -->
 
 </details>
 
-<!-- PATCHES_END -->
+## Build & release
 
-## Build and release
-
-- Source code is maintained in this repository.
-- GitHub Actions builds and verifies the Morphe patch bundle; releases publish the `.mpp` bundle and update the generated patch catalogue.
-- The patch project is intended to be built through the repository workflow. Local Android/Gradle build instructions are not required to use the published bundle.
+GitHub Actions builds and verifies the Morphe patch bundle. Stable and development releases publish the `.mpp` bundle and refresh the generated catalogue.
 
 ## Disclaimer
 
-SARVO Patches is an independent community project. It is not affiliated with, endorsed by, or sponsored by Samsung, Panasonic, or the Morphe project. Samsung Good Lock and its plugins are Samsung software. APKMirror is a third-party APK catalogue; links are provided as references, not as an endorsement. Use patches and separately downloaded APKs at your own discretion. Always verify APK source, signature, Android version, and architecture before installing.
+SARVO Patches is an independent community project and is not affiliated with Samsung, Panasonic, or Morphe. Samsung Good Lock and its plugins are Samsung software. APKMirror links are provided as references; check APK signatures, Android versions, and architectures before installing.
 
 ## License
 
