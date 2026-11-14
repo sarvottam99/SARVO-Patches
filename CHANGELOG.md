@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/sarvottam99/SARVO-Patches/compare/v1.2.0...v1.3.0) (2026-11-14)
+
+### ✨ New Features
+
+* Add HeyMelody to SARVO-Patches ([d101d0f](https://github.com/sarvottam99/SARVO-Patches/commit/d101d0ff82c06428e718c31585538d5de48394b3))
+
 ## 1.2.0 (2026-11-04)
 
 - Add Samsung Good Lock to SARVO Patches.
