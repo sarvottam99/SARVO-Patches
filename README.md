@@ -26,14 +26,35 @@ Use a stable release for normal use. Enable pre-releases in the source settings 
 
 **Patches**
 
-<details>
-<summary>View 3 MirAIe patches</summary>
-
-- **Dark mode** — Applies a dark appearance across the app, including its legal WebView, while keeping chart labels readable.
-- **Hide Lifestyle tab** — Hides the Lifestyle tab from the bottom navigation.
-- **Remove dashboard promotional banner** — Removes the promotional carousel from the dashboard.
+| Patch | Purpose |
+|---|---|
+| **Change installer source** | Spoofs the installer identity reported to the app. The identity is configurable in patch options. |
+| **Dark mode** | Forces the app into night mode, enables Android Force Dark, darkens its legal WebView, and preserves readable energy-chart labels. |
+| **Disable Play Store updates** | Raises the reported version code to discourage Play Store updates. May cause unexpected behavior and does not work with root-mounted installations. |
+| **Hide Lifestyle tab** | Hides the Lifestyle item from the bottom navigation without reordering the other tabs. |
+| **Remove dashboard promotional banner** | Removes the dashboard promotional carousel before it initializes. |
+| **Spoof signature** | Spoofs the package signature expected by the original app. |
 
 </details>
+
+<details>
+<summary><strong>HeyMelody</strong></summary>
+
+| App detail | Value |
+|---|---|
+| Package | `com.heytap.headset` |
+| Supported version | `117.6.6` |
+| Original package format | `APKM` |
+
+**Patches**
+
+| Patch | Purpose |
+|---|---|
+| **Change installer source** | Spoofs the installer identity reported to the app. The identity is configurable in patch options. |
+| **Dark mode** | Enables HeyMelody's native night mode. |
+| **Disable Play Store updates** | Disables Play Store updates by changing the reported version code. |
+| **Spoof signature** | Spoofs the package signature of the original APK. |
+
 </details>
 
 <details>
