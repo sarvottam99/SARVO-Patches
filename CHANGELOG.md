@@ -2,12 +2,6 @@
 
 - Bug Fixes in Patch List.
 
-## [1.4.0-dev.1](https://github.com/sarvottam99/SARVO-Patches/compare/v1.3.0...v1.4.0-dev.1) (2026-11-15)
-
-### ✨ New Features
-
-* group HeyMelody shared patches under app compatibility ([66e20e0](https://github.com/sarvottam99/SARVO-Patches/commit/66e20e028201bf6cfbcf9b1ab62240e71427f619))
-
 ## 1.3.0 (2026-11-14)
 
 - Added HeyMelody to SARVO-Patches.
