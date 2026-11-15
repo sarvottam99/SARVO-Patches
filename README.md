@@ -112,7 +112,7 @@ Choose an APK compatible with your device's Android version and CPU architecture
 The full patch index is generated from the compiled bundle during a release. Morphe Manager remains the source of truth for the versions and options available for a particular APK.
 
 <!-- PATCHES_START -->
-> **[v1.4.0-dev.1](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.4.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.4.0](https://github.com/sarvottam99/SARVO-Patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 HeyMelody&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
